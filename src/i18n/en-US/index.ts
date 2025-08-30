@@ -47,6 +47,7 @@ export default {
           labels: {
             title: 'Completion',
             serviceUrl: 'Service URL',
+            apiToken: 'API Token',
             model: 'Model',
           },
         },

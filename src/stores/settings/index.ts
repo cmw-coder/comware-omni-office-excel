@@ -12,6 +12,7 @@ export const useSettingsStore = defineStore(
   () => {
     const { locale: i18nLocale } = useI18n();
 
+    const apiToken = ref<string>('');
     const baseUrl = ref<string>('');
     const darkMode = ref<Dark['mode']>(Dark.mode);
     const developerMode = ref(false);
@@ -58,6 +59,7 @@ export const useSettingsStore = defineStore(
     };
 
     return {
+      apiToken,
       baseUrl,
       darkMode,
       developerMode,

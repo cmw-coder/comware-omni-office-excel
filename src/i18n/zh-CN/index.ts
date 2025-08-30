@@ -47,6 +47,7 @@ export default {
           labels: {
             title: '补全',
             serviceUrl: '服务 URL',
+            apiToken: 'API 令牌',
             model: '模型',
           },
         },

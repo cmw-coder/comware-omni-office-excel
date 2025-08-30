@@ -1,4 +1,5 @@
 import { rawModelApi } from 'boot/axios';
+import { useSettingsStore } from 'stores/settings';
 
 export const digestMessage = async (message: string) => {
   const msgUint8 = new TextEncoder().encode(message);
@@ -46,10 +47,14 @@ interface CompletionBody {
 }
 
 export const generate = async (content: string, signal: AbortSignal) => {
+  const settingsStore = useSettingsStore();
+
+  console.log(settingsStore.apiToken, settingsStore.model);
+
   const { data } = await rawModelApi.post<CompletionBody>(
     '/chat/completions',
     {
-      model: 'qwen/qwen3-30b-a3b-instruct-2507',
+      model: settingsStore.model,
       messages: [
         {
           role: 'system',
@@ -63,8 +68,7 @@ export const generate = async (content: string, signal: AbortSignal) => {
     },
     {
       headers: {
-        Authorization:
-          'Bearer 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',
+        Authorization: `Bearer ${settingsStore.apiToken}`,
       },
       signal,
     },
