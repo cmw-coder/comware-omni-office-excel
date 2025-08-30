@@ -79,9 +79,11 @@ export class OfficeHelper {
     }
 
     if (Office.context.requirements.isSetSupported('ExcelApi', '1.7')) {
-      // 支持 ExcelApi 1.7，使用 registerParagraphChangedEvent（现在是单元格变更事件）
+      // 支持 ExcelApi 1.7，使用多种事件监听来捕获更多用户操作
       Excel.run(async (context) => {
         const worksheet = context.workbook.worksheets.getActiveWorksheet();
+
+        // 监听单元格内容变更事件
         worksheet.onChanged.add(async (eventArgs) => {
           if (
             eventArgs.changeType === Excel.DataChangeType.cellDeleted ||
@@ -91,8 +93,13 @@ export class OfficeHelper {
             await callback(await this.retrieveContext(staticRanges));
           }
         });
+        // 监听选择变更事件作为补充（当用户切换单元格时也可能表示编辑意图）
+        worksheet.onSelectionChanged.add(async () => {
+          await callback(await this.retrieveContext(staticRanges));
+        });
+
         await context.sync();
-        console.log('Added event handler for when content is changed in Excel cells.');
+        console.log('Added multiple event handlers for Excel cell operations.');
       }).catch((error) => console.error(error));
     } else {
       console.warn('ExcelApi 1.7 not supported, falling back to selection changed event');
@@ -116,6 +123,7 @@ export class OfficeHelper {
         // TODO: 目前 Office.js 没有提供直接移除特定事件处理器的方法
         // const worksheet = context.workbook.worksheets.getActiveWorksheet();
         // worksheet.onChanged.remove();
+        // worksheet.onSelectionChanged.remove();
         await context.sync();
         console.log('Removed event handler for content changes in Excel cells.');
       }).catch((error) => console.error(error));
