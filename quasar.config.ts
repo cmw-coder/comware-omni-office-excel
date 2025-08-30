@@ -3,7 +3,27 @@
 
 import { defineConfig } from '#q-app/wrappers';
 import { fileURLToPath } from 'node:url';
+import { ensureCertificatesAreInstalled } from 'office-addin-dev-certs';
+import { validateManifest } from 'office-addin-manifest';
 
+import { OFFICE_JS_SCRIPT_TAG } from 'src/constants/common';
+import { copyFileSync, cpSync, readFileSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { homedir } from 'node:os';
+
+const MANIFEST_PATH = 'manifest.xml';
+const OFFICE_JS_SCRIPT_PLACEHOLDER = '%OFFICE_JS_SCRIPT%';
+
+const enforceManifest = async (manifestPath: string) => {
+  console.info('Validating manifest file...');
+  if (!(await validateManifest(manifestPath))) {
+    console.error('Manifest file is invalid');
+    process.exit(1);
+  }
+  console.info('Manifest file is valid');
+};
+
+// noinspection JSUnusedGlobalSymbols
 export default defineConfig((ctx) => {
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
@@ -12,7 +32,7 @@ export default defineConfig((ctx) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ['i18n', 'axios'],
+    boot: ['axios', 'bus', 'completion', 'i18n', 'office', 'statistic'],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: ['app.scss'],
@@ -20,7 +40,7 @@ export default defineConfig((ctx) => {
     // https://github.com/quasarframework/quasar/tree/dev/extras
     extras: [
       // 'ionicons-v4',
-      // 'mdi-v7',
+      'mdi-v7',
       // 'fontawesome-v6',
       // 'eva-icons',
       // 'themify',
@@ -30,6 +50,10 @@ export default defineConfig((ctx) => {
       'roboto-font', // optional, you are not bound to it
       'material-icons', // optional, you are not bound to it
     ],
+
+    htmlVariables: {
+      officeJsScript: ctx.dev ? OFFICE_JS_SCRIPT_TAG : OFFICE_JS_SCRIPT_PLACEHOLDER,
+    },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#build
     build: {
@@ -56,11 +80,13 @@ export default defineConfig((ctx) => {
       // env: {},
       // rawDefine: {}
       // ignorePublicFolder: true,
-      // minify: false,
+      minify: true,
       // polyfillModulePreload: true,
       // distDir
 
-      // extendViteConf (viteConf) {},
+      extendViteConf(viteConf) {
+        viteConf.base = '';
+      },
       // viteVuePluginOptions: {},
 
       vitePlugins: [
@@ -93,17 +119,55 @@ export default defineConfig((ctx) => {
           { server: false },
         ],
       ],
+
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      beforeDev: async () => {
+        console.info('Ensuring CA certificate is installed...');
+        await ensureCertificatesAreInstalled();
+        console.info('CA certificate is installed');
+
+        await enforceManifest(MANIFEST_PATH);
+      },
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      beforeBuild: async () => {
+        await enforceManifest(MANIFEST_PATH);
+      },
+      afterBuild: ({ quasarConf }) => {
+        if (quasarConf.build?.distDir) {
+          copyFileSync(MANIFEST_PATH, `${quasarConf.build.distDir}/manifest.xml`);
+
+          cpSync(
+            'node_modules/@microsoft/office-js/dist',
+            `${quasarConf.build.distDir}/libs/office-js`,
+            { recursive: true },
+          );
+          // noinspection HtmlUnknownTarget
+          writeFileSync(
+            `${quasarConf.build.distDir}/index.html`,
+            readFileSync(`${quasarConf.build.distDir}/index.html`, 'utf-8').replace(
+              OFFICE_JS_SCRIPT_PLACEHOLDER,
+              '<script src="./libs/office-js/office.js"></script>',
+            ),
+          );
+        }
+      },
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#devserver
     devServer: {
-      // https: true,
-      open: true, // opens browser window automatically
+      https: ctx.dev
+        ? {
+          key: readFileSync(resolve(`${homedir()}/.office-addin-dev-certs/localhost.key`)),
+          cert: readFileSync(resolve(`${homedir()}/.office-addin-dev-certs/localhost.crt`)),
+          ca: readFileSync(resolve(`${homedir()}/.office-addin-dev-certs/ca.crt`)),
+        }
+        : {},
+      open: false, // opens a browser window automatically
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework
     framework: {
-      config: {},
+      config: { dark: 'auto' },
 
       // iconSet: 'material-icons', // Quasar icon set
       // lang: 'en-US', // Quasar language pack
@@ -116,7 +180,7 @@ export default defineConfig((ctx) => {
       // directives: [],
 
       // Quasar plugins
-      plugins: [],
+      plugins: ['Dialog', 'Notify'],
     },
 
     // animations: 'all', // --- includes all animations

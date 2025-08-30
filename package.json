@@ -13,9 +13,12 @@
     "build": "quasar build"
   },
   "dependencies": {
+    "@microsoft/office-js": "^1.1.110",
     "@quasar/extras": "^1.17.0",
     "axios": "^1.11.0",
+    "luxon": "^3.7.1",
     "pinia": "^3.0.3",
+    "pinia-plugin-persistedstate": "^4.5.0",
     "quasar": "^2.18.2",
     "vue": "^3.5.20",
     "vue-i18n": "^11.1.11",
@@ -25,7 +28,9 @@
     "@eslint/js": "^9.34.0",
     "@intlify/unplugin-vue-i18n": "^6.0.8",
     "@quasar/app-vite": "^2.3.0",
+    "@types/luxon": "^3.7.1",
     "@types/node": "^24.3.0",
+    "@types/office-js": "^1.0.531",
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/eslint-config-typescript": "^14.6.0",
     "autoprefixer": "^10.4.21",
