@@ -8,6 +8,7 @@ import { i18nSubPath } from 'src/utils/common';
 import { useSettingsStore } from 'stores/settings';
 
 const { locale } = storeToRefs(useSettingsStore());
+const { applyLocale } = useSettingsStore();
 
 const locales = computed(() => {
   return Object.keys(messages).map((key: string) => ({
@@ -45,7 +46,15 @@ const i18n = i18nSubPath('components.SettingsCards.main.GeneralCard');
           </q-item-label>
         </q-item-section>
         <q-item-section side>
-          <q-select borderless emit-value map-options :options="locales" v-model="locale" />
+          <q-select
+            borderless
+            emit-value
+            map-options
+            name="locales"
+            :options="locales"
+            v-model="locale"
+            @update:model-value="applyLocale"
+          />
         </q-item-section>
       </q-item>
     </q-list>

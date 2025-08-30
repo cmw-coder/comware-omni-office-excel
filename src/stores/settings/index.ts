@@ -7,17 +7,17 @@ import { DARK_MODES, DEFAULT_SERVER_URL_MAP } from 'stores/settings/constants';
 import type { Locales, NetworkZone } from 'stores/settings/types';
 import { checkUrlAccessible } from 'stores/settings/utils';
 
-const { locale: i18nLocale } = useI18n();
 
 export const useSettingsStore = defineStore(
   'settings',
   () => {
+    const { locale: i18nLocale } = useI18n();
+
     const baseUrl = ref<string>('');
     const darkMode = ref<Dark['mode']>(Dark.mode);
     const developerMode = ref(false);
     const locale = ref<string>(i18nLocale.value);
 
-    const singleParagraph = ref(true);
     const username = ref<string>('');
 
     const themeProps = computed(() => {
@@ -64,7 +64,6 @@ export const useSettingsStore = defineStore(
       developerMode,
       locale,
       username,
-      singleParagraph,
       themeProps,
       applyLocale,
       applyTheme,

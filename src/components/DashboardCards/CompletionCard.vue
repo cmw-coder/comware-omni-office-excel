@@ -1,17 +1,12 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia';
 import { onMounted, onUnmounted, ref } from 'vue';
 
 import { completionManager } from 'boot/completion';
 import { officeHelper } from 'boot/office';
-import { NEW_LINE_REGEX } from 'src/constants/common';
 import type { ContentContext } from 'src/types/common';
 import { GenerateResult, PromptElements } from 'src/types/CompletionManager/types';
 import { i18nSubPath } from 'src/utils/common';
-import { useSettingsStore } from 'stores/settings';
 import { statisticManager } from 'boot/statistic';
-
-const { singleParagraph } = storeToRefs(useSettingsStore());
 
 const currentStatisticId = ref<string>();
 const loading = ref(false);
@@ -61,10 +56,7 @@ const triggerCompletion = async (statisticId: string, context: ContentContext) =
       break;
     }
     case GenerateResult.Success: {
-      const processed = singleParagraph.value
-        ? data.map((item) => item.split(NEW_LINE_REGEX)[0] ?? item)
-        : data;
-      statisticManager.setCandidates(statisticId, processed);
+      statisticManager.setCandidates(statisticId, data);
       const candidate = statisticManager.getCurrentCandidate(statisticId);
       if (!candidate) {
         console.warn('No candidate for statisticId:', statisticId);
