@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 
 import { completionManager } from 'boot/completion';
 import { officeHelper } from 'boot/office';
@@ -88,6 +88,13 @@ const triggerCompletion = async (statisticId: string, context: ContentContext) =
 
 // TODO: Add unmount event
 onMounted(() => {
+  await officeHelper.registerParagraphChangedEvent(async (context) => {
+    loading.value = true;
+    const statisticId = statisticManager.begin('');
+    statisticManager.setContext(statisticId, context);
+    await triggerCompletion(statisticId, context);
+    loading.value = false;
+  });
   officeHelper.registerSelectionChangedEvent(async (context) => {
     loading.value = true;
     const statisticId = statisticManager.begin('');
@@ -95,6 +102,20 @@ onMounted(() => {
     await triggerCompletion(statisticId, context);
     loading.value = false;
   });
+  officeHelper.onAcceptCandidate = () => {
+    if (
+      generateResult.value !== GenerateResult.Cancel &&
+      generateResult.value !== GenerateResult.Success
+    ) {
+      return;
+    }
+    insertCompletion().catch((error) => console.error(error));
+  };
+});
+
+onUnmounted(() => {
+  officeHelper.unregisterSelectionChangedEvent();
+  officeHelper.onAcceptCandidate = undefined;
 });
 </script>
 
@@ -133,7 +154,7 @@ onMounted(() => {
         :disable="
           generateResult !== GenerateResult.Cancel && generateResult !== GenerateResult.Success
         "
-        :label="i18n('labels.generate')"
+        :label="i18n('labels.insertCompletion')"
         no-caps
         @click="insertCompletion"
       />

@@ -1,11 +1,14 @@
-import type { OfficeInfo } from './types';
-
 import { OFFICE_JS_SCRIPT_TAG } from 'src/constants/common';
 import type { ContentContext } from 'src/types/common';
+
+import type { OfficeInfo } from './types';
+import { columnNumberToString, columnStringToNumber } from './utils';
 
 export class OfficeHelper {
   private _initialized = false;
   private _officeInfo?: OfficeInfo;
+
+  onAcceptCandidate?: (() => void) | undefined;
 
   async init() {
     if (this._initialized) {
@@ -15,7 +18,9 @@ export class OfficeHelper {
 
     if (Office) {
       this._officeInfo = await Office.onReady();
-
+      Office.actions.associate('ComwareOmniAcceptCandidate', () => {
+        this.onAcceptCandidate?.();
+      });
       Office.actions.associate('ComwareOmniHideTaskpane', () => {
         (async () => {
           try {
@@ -65,7 +70,10 @@ export class OfficeHelper {
     return this._initialized && this._officeInfo !== undefined;
   }
 
-  async registerParagraphChangedEvent(callback: (contentContext: ContentContext) => Promise<void>, staticRanges: string = '') {
+  async registerParagraphChangedEvent(
+    callback: (contentContext: ContentContext) => Promise<void>,
+    staticRanges: string = '',
+  ) {
     if (!this._isAvailable()) {
       return false;
     }
@@ -80,7 +88,10 @@ export class OfficeHelper {
     });
   }
 
-  registerSelectionChangedEvent(callback: (contentContext: ContentContext) => Promise<void>, staticRanges: string = '') {
+  registerSelectionChangedEvent(
+    callback: (contentContext: ContentContext) => Promise<void>,
+    staticRanges: string = '',
+  ) {
     if (!this._isAvailable()) {
       return false;
     }
@@ -91,6 +102,14 @@ export class OfficeHelper {
       })();
     });
     return true;
+  }
+
+  unregisterSelectionChangedEvent() {
+    if (!this._isAvailable()) {
+      return false;
+    }
+
+    Office.context.document.removeHandlerAsync(Office.EventType.DocumentSelectionChanged);
   }
 
   async retrieveContext(staticRanges: string = ''): Promise<ContentContext> {
@@ -119,7 +138,7 @@ export class OfficeHelper {
             throw new Error('Invalid cell address format');
           }
 
-          const currentCol = this._columnToNumber(match[1]);
+          const currentCol = columnStringToNumber(match[1]);
           const currentRow = parseInt(match[2]);
 
           // 获取周围距离小于2的单元格内容
@@ -131,12 +150,12 @@ export class OfficeHelper {
               const newCol = currentCol + dx;
 
               if (newRow > 0 && newCol > 0) {
-                const newAddress = this._numberToColumn(newCol) + newRow;
+                const newAddress = columnNumberToString(newCol) + newRow;
                 nearbyAddresses.push(newAddress);
               }
             }
           }
-          const nearbyCells = nearbyAddresses.map(addr => {
+          const nearbyCells = nearbyAddresses.map((addr) => {
             const cell = currentSheet.getRange(addr);
             cell.load(['address', 'values']);
             return cell;
@@ -148,25 +167,25 @@ export class OfficeHelper {
           const result: ContentContext = {
             current: {
               address: activeCell.address,
-              content: (activeCell.values?.[0]?.[0]?.toString()) || ''
+              content: activeCell.values?.[0]?.[0]?.toString() || '',
             },
             relative: [],
-            static: []
+            static: [],
           };
 
           // 填充相对单元格数据
-          nearbyCells.forEach(cell => {
+          nearbyCells.forEach((cell) => {
             const cellAddress = cell.address;
             const cellMatch = cellAddress.match(/([A-Z]+)(\d+)/);
             if (cellMatch && cellMatch[1] && cellMatch[2]) {
-              const cellCol = this._columnToNumber(cellMatch[1]);
+              const cellCol = columnStringToNumber(cellMatch[1]);
               const cellRow = parseInt(cellMatch[2]);
 
               result.relative.push({
                 address: cellAddress,
                 dx: cellCol - currentCol,
                 dy: cellRow - currentRow,
-                content: (cell.values?.[0]?.[0]?.toString()) || ''
+                content: cell.values?.[0]?.[0]?.toString() || '',
               });
             }
           });
@@ -174,7 +193,7 @@ export class OfficeHelper {
           // 填充静态范围数据
           if (usedRange) {
             const staticRangesArray = usedRange.areas.items;
-            staticRangesArray.forEach(range => {
+            staticRangesArray.forEach((range) => {
               const rowCount = range.values?.length || 0;
               const colCount = range.values?.[0]?.length || 0;
 
@@ -186,15 +205,15 @@ export class OfficeHelper {
                     const rangeAddress = range.address;
                     const rangeMatch = rangeAddress.match(/([A-Z]+)(\d+)/);
                     if (rangeMatch && rangeMatch[1] && rangeMatch[2]) {
-                      const startCol = this._columnToNumber(rangeMatch[1]);
+                      const startCol = columnStringToNumber(rangeMatch[1]);
                       const startRow = parseInt(rangeMatch[2]);
                       const actualCol = startCol + col;
                       const actualRow = startRow + row;
-                      const actualAddress = this._numberToColumn(actualCol) + actualRow;
+                      const actualAddress = columnNumberToString(actualCol) + actualRow;
 
                       result.static.push({
                         address: actualAddress,
-                        content: cellValue.toString()
+                        content: cellValue.toString(),
                       });
                     }
                   }
@@ -215,25 +234,5 @@ export class OfficeHelper {
         reject(error instanceof Error ? error : new Error(String(error)));
       });
     });
-  }
-
-  // 辅助函数：将列字母转换为数字
-  private _columnToNumber(column: string): number {
-    let result = 0;
-    for (let i = 0; i < column.length; i++) {
-      result = result * 26 + (column.charCodeAt(i) - 'A'.charCodeAt(0) + 1);
-    }
-    return result;
-  }
-
-  // 辅助函数：将数字转换为列����母
-  private _numberToColumn(num: number): string {
-    let result = '';
-    while (num > 0) {
-      num--;
-      result = String.fromCharCode('A'.charCodeAt(0) + (num % 26)) + result;
-      num = Math.floor(num / 26);
-    }
-    return result;
   }
 }
