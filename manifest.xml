@@ -16,7 +16,7 @@
         <AppDomain>localhost:9000</AppDomain>
     </AppDomains>
     <Hosts>
-        <Host Name="Document"/>
+        <Host Name="Workbook"/>
     </Hosts>
     <Requirements>
         <Sets>
@@ -30,7 +30,7 @@
     <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
                       xsi:type="VersionOverridesV1_0">
         <Hosts>
-            <Host xsi:type="Document">
+            <Host xsi:type="Workbook">
                 <Runtimes>
                     <Runtime resid="Taskpane.Url" lifetime="long"/>
                 </Runtimes>
