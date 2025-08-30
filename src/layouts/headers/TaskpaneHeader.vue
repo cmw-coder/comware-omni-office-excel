@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { i18nSubPath } from 'src/utils/common'
+import { i18nSubPath } from 'src/utils/common';
 
 const routes = [
   {
@@ -14,9 +14,9 @@ const routes = [
     available: true,
     route: 'settings',
   },
-]
+];
 
-const i18n = i18nSubPath('layouts.headers.TaskpaneHeader')
+const i18n = i18nSubPath('layouts.headers.TaskpaneHeader');
 </script>
 
 <template>

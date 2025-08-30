@@ -1,6 +1,6 @@
-import type messages from 'src/i18n'
+import type messages from 'src/i18n';
 
-export type Locales = keyof typeof messages
+export type Locales = keyof typeof messages;
 
 export enum NetworkZone {
   Normal = 'Normal',

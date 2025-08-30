@@ -1,29 +1,29 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref } from 'vue';
 
-import AboutCard from 'components/SettingsCards/main/AboutCard.vue'
-import CompletionCard from 'components/SettingsCards/main/CompletionCard.vue'
-import RequestTestCard from 'components/SettingsCards/developer/RequestTestCard.vue'
-import GeneralCard from 'components/SettingsCards/main/GeneralCard.vue'
-import { i18nSubPath } from 'src/utils/common'
-import DeveloperModeCard from 'components/SettingsCards/developer/GeneralCard.vue'
+import AboutCard from 'components/SettingsCards/main/AboutCard.vue';
+import CompletionCard from 'components/SettingsCards/main/CompletionCard.vue';
+import RequestTestCard from 'components/SettingsCards/developer/RequestTestCard.vue';
+import GeneralCard from 'components/SettingsCards/main/GeneralCard.vue';
+import { i18nSubPath } from 'src/utils/common';
+import DeveloperModeCard from 'components/SettingsCards/developer/GeneralCard.vue';
 
-const currentTab = ref('main')
-const tabStack = ref<string[]>([])
+const currentTab = ref('main');
+const tabStack = ref<string[]>([]);
 
-const i18n = i18nSubPath('pages.taskpane.SettingsPage')
+const i18n = i18nSubPath('pages.taskpane.SettingsPage');
 
 const popTab = () => {
-  const popped = tabStack.value.pop()
+  const popped = tabStack.value.pop();
   if (popped) {
-    currentTab.value = popped
+    currentTab.value = popped;
   }
-}
+};
 
 const pushTab = (tab: string) => {
-  tabStack.value.push(currentTab.value)
-  currentTab.value = tab
-}
+  tabStack.value.push(currentTab.value);
+  currentTab.value = tab;
+};
 </script>
 
 <template>

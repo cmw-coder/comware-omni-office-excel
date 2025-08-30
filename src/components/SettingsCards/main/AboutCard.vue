@@ -1,23 +1,23 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
-import { copyToClipboard, useQuasar } from 'quasar'
-import { ref } from 'vue'
+import { storeToRefs } from 'pinia';
+import { copyToClipboard, useQuasar } from 'quasar';
+import { ref } from 'vue';
 
-import PackageJson from 'app/package.json'
-import { officeHelper } from 'boot/office'
-import { i18nSubPath } from 'src/utils/common'
-import { useSettingsStore } from 'stores/settings'
+import PackageJson from 'app/package.json';
+import { officeHelper } from 'boot/office';
+import { i18nSubPath } from 'src/utils/common';
+import { useSettingsStore } from 'stores/settings';
 
 const emit = defineEmits<{
-  push: [path: string]
-}>()
+  push: [path: string];
+}>();
 
-const { developerMode } = storeToRefs(useSettingsStore())
-const { notify } = useQuasar()
+const { developerMode } = storeToRefs(useSettingsStore());
+const { notify } = useQuasar();
 
-const developerModeCounter = ref(0)
+const developerModeCounter = ref(0);
 
-const i18n = i18nSubPath('components.SettingsCards.main.AboutCard')
+const i18n = i18nSubPath('components.SettingsCards.main.AboutCard');
 
 const copyInfo = () => {
   copyToClipboard(JSON.stringify(officeHelper.info))
@@ -27,7 +27,7 @@ const copyInfo = () => {
         position: 'top',
         timeout: 3000,
         message: i18n('notifications.copySuccess'),
-      })
+      });
     })
     .catch(() => {
       notify({
@@ -35,19 +35,19 @@ const copyInfo = () => {
         position: 'top',
         timeout: 3000,
         message: i18n('notifications.copyFailed'),
-      })
-    })
-}
+      });
+    });
+};
 
 const pushDeveloper = () => {
-  emit('push', 'developer')
-}
+  emit('push', 'developer');
+};
 
 const tryEnableDeveloperMode = () => {
   if (developerMode.value) {
-    return
+    return;
   }
-  developerModeCounter.value++
+  developerModeCounter.value++;
   if (developerModeCounter.value >= 3 && developerModeCounter.value < 7) {
     notify({
       type: 'info',
@@ -56,19 +56,19 @@ const tryEnableDeveloperMode = () => {
         times: 7 - developerModeCounter.value,
       }),
       icon: 'mdi-dev-to',
-    })
+    });
   } else if (developerModeCounter.value >= 7) {
-    developerModeCounter.value = 0
-    developerMode.value = true
+    developerModeCounter.value = 0;
+    developerMode.value = true;
     notify({
       type: 'positive',
       message: i18n('notifications.developerModeEnabled'),
       icon: 'mdi-dev-to',
-    })
-    developerMode.value = true
-    pushDeveloper()
+    });
+    developerMode.value = true;
+    pushDeveloper();
   }
-}
+};
 </script>
 
 <template>

@@ -1,16 +1,16 @@
-import { defineBoot } from '#q-app/wrappers'
+import { defineBoot } from '#q-app/wrappers';
 
-import { StatisticManager } from 'src/types/StatisticManager'
+import { StatisticManager } from 'src/types/StatisticManager';
 
 declare module 'vue' {
   // noinspection JSUnusedGlobalSymbols
   interface ComponentCustomProperties {
-    $statisticManager: StatisticManager
+    $statisticManager: StatisticManager;
   }
 }
 
-export const statisticManager = new StatisticManager()
+export const statisticManager = new StatisticManager();
 
 export default defineBoot(({ app }) => {
-  app.config.globalProperties.$statisticManager = statisticManager
-})
+  app.config.globalProperties.$statisticManager = statisticManager;
+});

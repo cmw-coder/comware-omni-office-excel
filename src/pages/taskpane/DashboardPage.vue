@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import CompletionCard from 'components/DashboardCards/CompletionCard.vue'
+import CompletionCard from 'components/DashboardCards/CompletionCard.vue';
 </script>
 
 <template>

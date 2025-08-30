@@ -53,8 +53,7 @@ export const generate = async (content: string, signal: AbortSignal) => {
       messages: [
         {
           role: 'system',
-          content:
-            '你现在是一个测试专家，我需要你参考当前测试用例表格的数据，并回答我要求的内容。'
+          content: '你现在是一个测试专家，我需要你参考当前测试用例表格的数据，并回答我要求的内容。',
         },
         {
           role: 'user',

@@ -1,11 +1,11 @@
-import axios from 'axios'
-import { DateTime } from 'luxon'
+import axios from 'axios';
+import { DateTime } from 'luxon';
 
-import type { ReportSkuDto } from './types'
+import type { ReportSkuDto } from './types';
 
-import PackageJson from 'app/package.json'
-import { useSettingsStore } from 'stores/settings'
-import { sleep } from 'src/utils/common'
+import PackageJson from 'app/package.json';
+import { useSettingsStore } from 'stores/settings';
+import { sleep } from 'src/utils/common';
 
 const _reportSku = async (data: ReportSkuDto[]) => {
   try {
@@ -16,16 +16,16 @@ const _reportSku = async (data: ReportSkuDto[]) => {
             `SKU 上报: ${item.extra} ${item.subType} ${item.type}.${item.product}.${item.firstClass}.${item.secondClass}.${item.skuName} [${item.count}]`,
         )
         .join('\n'),
-    )
+    );
     await axios.post('/kong/RdTestResourceStatistic/report/summary', data, {
       baseURL: useSettingsStore().baseUrl,
-    })
-    return true
+    });
+    return true;
   } catch (e) {
-    console.error('StatisticsReporter Failed', data, e)
-    return false
+    console.error('StatisticsReporter Failed', data, e);
+    return false;
   }
-}
+};
 
 const _pseudoReportSku = async (data: ReportSkuDto[]) => {
   console.debug(
@@ -35,10 +35,10 @@ const _pseudoReportSku = async (data: ReportSkuDto[]) => {
           `SKU 上报: ${item.extra} ${item.subType} ${item.type}.${item.product}.${item.firstClass}.${item.secondClass}.${item.skuName} [${item.count}]`,
       )
       .join('\n'),
-  )
-  await sleep(300 + Math.random() * 700)
-  return true
-}
+  );
+  await sleep(300 + Math.random() * 700);
+  return true;
+};
 
 export const acceptSku = async (
   begin: DateTime,
@@ -59,9 +59,9 @@ export const acceptSku = async (
     userType: 'USER',
     extra: PackageJson.version,
     subType: projectId,
-  }
+  };
   return await (process.env.DEV ? _pseudoReportSku([data]) : _reportSku([data]));
-}
+};
 
 export const generateSku = async (
   begin: DateTime,
@@ -82,6 +82,6 @@ export const generateSku = async (
     userType: 'USER',
     extra: PackageJson.version,
     subType: projectId,
-  }
+  };
   return await (process.env.DEV ? _pseudoReportSku([data]) : _reportSku([data]));
-}
+};

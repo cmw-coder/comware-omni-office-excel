@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
+import { storeToRefs } from 'pinia';
 
-import { i18nSubPath } from 'src/utils/common'
-import { useSettingsStore } from 'stores/settings'
+import { i18nSubPath } from 'src/utils/common';
+import { useSettingsStore } from 'stores/settings';
 
-const { developerMode } = storeToRefs(useSettingsStore())
+const { developerMode } = storeToRefs(useSettingsStore());
 
-const i18n = i18nSubPath('components.SettingsCards.developer.GeneralCard')
+const i18n = i18nSubPath('components.SettingsCards.developer.GeneralCard');
 </script>
 
 <template>

@@ -121,7 +121,8 @@ export class OfficeHelper {
       }).catch((error) => console.error(error));
     } else {
       console.warn('ExcelApi 1.7 not supported, removing selection changed event handler');
-      Office.context.document.removeHandlerAsync(Office.EventType.DocumentSelectionChanged);    }
+      Office.context.document.removeHandlerAsync(Office.EventType.DocumentSelectionChanged);
+    }
   }
 
   async retrieveContext(staticRanges: string = ''): Promise<ContentContext> {
@@ -241,11 +242,10 @@ export class OfficeHelper {
           console.log('Error in retrieveContext:', error);
           reject(error instanceof Error ? error : new Error(String(error)));
         }
-      })
-        .catch((error) => {
-          console.log('Excel.run error:', error);
-          reject(error instanceof Error ? error : new Error(String(error)));
-        });
+      }).catch((error) => {
+        console.log('Excel.run error:', error);
+        reject(error instanceof Error ? error : new Error(String(error)));
+      });
     });
   }
 }

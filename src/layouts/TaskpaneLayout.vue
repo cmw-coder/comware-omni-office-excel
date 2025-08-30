@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useQuasar } from 'quasar'
+import { useQuasar } from 'quasar';
 
-const { screen } = useQuasar()
+const { screen } = useQuasar();
 </script>
 <template>
   <q-layout view="hHh lpR fFf">

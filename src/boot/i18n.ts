@@ -27,7 +27,7 @@ const i18n = createI18n<{ message: MessageSchema }, MessageLanguages>({
   messages,
 });
 
-export const i18nGlobal = i18n.global
+export const i18nGlobal = i18n.global;
 
 export default defineBoot(({ app }) => {
   app.use(i18n);

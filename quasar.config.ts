@@ -157,10 +157,10 @@ export default defineConfig((ctx) => {
     devServer: {
       https: ctx.dev
         ? {
-          key: readFileSync(resolve(`${homedir()}/.office-addin-dev-certs/localhost.key`)),
-          cert: readFileSync(resolve(`${homedir()}/.office-addin-dev-certs/localhost.crt`)),
-          ca: readFileSync(resolve(`${homedir()}/.office-addin-dev-certs/ca.crt`)),
-        }
+            key: readFileSync(resolve(`${homedir()}/.office-addin-dev-certs/localhost.key`)),
+            cert: readFileSync(resolve(`${homedir()}/.office-addin-dev-certs/localhost.crt`)),
+            ca: readFileSync(resolve(`${homedir()}/.office-addin-dev-certs/ca.crt`)),
+          }
         : {},
       open: false, // opens a browser window automatically
     },

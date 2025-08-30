@@ -1,29 +1,24 @@
-import { defineStore, acceptHMRUpdate } from 'pinia'
-import { Dark } from 'quasar'
-import { computed, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { defineStore, acceptHMRUpdate } from 'pinia';
+import { Dark } from 'quasar';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-import { DARK_MODES, DEFAULT_SERVER_URL_MAP } from 'stores/settings/constants'
-import type { Locales, NetworkZone } from 'stores/settings/types'
-import { checkUrlAccessible } from 'stores/settings/utils'
+import { DARK_MODES, DEFAULT_SERVER_URL_MAP } from 'stores/settings/constants';
+import type { Locales, NetworkZone } from 'stores/settings/types';
+import { checkUrlAccessible } from 'stores/settings/utils';
+
+const { locale: i18nLocale } = useI18n();
 
 export const useSettingsStore = defineStore(
   'settings',
   () => {
-    const baseUrl = ref<string>('')
-    const darkMode = ref<Dark['mode']>(Dark.mode)
-    const developerMode = ref(false)
+    const baseUrl = ref<string>('');
+    const darkMode = ref<Dark['mode']>(Dark.mode);
+    const developerMode = ref(false);
+    const locale = ref<string>(i18nLocale.value);
 
-    const { locale: i18nLocale } = useI18n()
-    const locale = computed({
-      get: () => i18nLocale.value,
-      set: (value: Locales) => {
-        i18nLocale.value = value
-      },
-    })
-
-    const singleParagraph = ref(true)
-    const username = ref<string>('')
+    const singleParagraph = ref(true);
+    const username = ref<string>('');
 
     const themeProps = computed(() => {
       switch (darkMode.value) {
@@ -36,6 +31,10 @@ export const useSettingsStore = defineStore(
       }
     });
 
+    const applyLocale = () => {
+      i18nLocale.value = locale.value as Locales;
+    };
+
     const applyTheme = () => {
       Dark.set(darkMode.value);
     };
@@ -46,12 +45,12 @@ export const useSettingsStore = defineStore(
           zone: <NetworkZone>zone,
           accessible: await checkUrlAccessible(url),
         })),
-      )
-      const availableNetworkZone = results.find(({ accessible }) => accessible)?.zone
+      );
+      const availableNetworkZone = results.find(({ accessible }) => accessible)?.zone;
       if (availableNetworkZone) {
-        baseUrl.value = DEFAULT_SERVER_URL_MAP[availableNetworkZone]
+        baseUrl.value = DEFAULT_SERVER_URL_MAP[availableNetworkZone];
       }
-    }
+    };
 
     const toggleTheme = () => {
       const index = DARK_MODES.indexOf(darkMode.value);
@@ -67,16 +66,17 @@ export const useSettingsStore = defineStore(
       username,
       singleParagraph,
       themeProps,
+      applyLocale,
       applyTheme,
       detectBaseUrl,
       toggleTheme,
-    }
+    };
   },
   {
     persist: true,
   },
-)
+);
 
 if (import.meta.hot) {
-  import.meta.hot.accept(acceptHMRUpdate(useSettingsStore, import.meta.hot))
+  import.meta.hot.accept(acceptHMRUpdate(useSettingsStore, import.meta.hot));
 }

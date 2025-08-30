@@ -1,18 +1,19 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
+import { storeToRefs } from 'pinia';
 
-import { useSettingsStore } from 'stores/settings'
-import { onMounted } from 'vue'
+import { useSettingsStore } from 'stores/settings';
+import { onMounted } from 'vue';
 
-const { applyTheme, detectBaseUrl } = useSettingsStore()
-const { baseUrl } = storeToRefs(useSettingsStore())
+const { applyLocale, applyTheme, detectBaseUrl } = useSettingsStore();
+const { baseUrl } = storeToRefs(useSettingsStore());
 
 onMounted(() => {
+  applyLocale();
   applyTheme();
   if (!baseUrl.value.length) {
-    detectBaseUrl().catch((e) => console.error(e))
+    detectBaseUrl().catch((e) => console.error(e));
   }
-})
+});
 </script>
 
 <template>

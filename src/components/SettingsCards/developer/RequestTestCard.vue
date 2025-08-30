@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref } from 'vue';
 
-import { i18nSubPath } from 'src/utils/common'
+import { i18nSubPath } from 'src/utils/common';
 
-const prefix = ref<string>()
-const suffix = ref<string>()
+const prefix = ref<string>();
+const suffix = ref<string>();
 
-const i18n = i18nSubPath('components.SettingsCards.developer.RequestTestCard')
+const i18n = i18nSubPath('components.SettingsCards.developer.RequestTestCard');
 </script>
 
 <template>

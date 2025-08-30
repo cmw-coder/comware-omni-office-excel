@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
+import { storeToRefs } from 'pinia';
 
-import { i18nSubPath } from 'src/utils/common'
-import { useSettingsStore } from 'stores/settings'
+import { i18nSubPath } from 'src/utils/common';
+import { useSettingsStore } from 'stores/settings';
 
-const { baseUrl, singleParagraph } = storeToRefs(useSettingsStore())
+const { baseUrl, singleParagraph } = storeToRefs(useSettingsStore());
 
-const i18n = i18nSubPath('components.SettingsCards.main.CompletionCard')
+const i18n = i18nSubPath('components.SettingsCards.main.CompletionCard');
 </script>
 
 <template>
