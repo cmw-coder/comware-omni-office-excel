@@ -47,14 +47,14 @@ export default {
           labels: {
             title: '补全',
             serviceUrl: '服务 URL',
-            singleParagraph: '单段落补全',
+            model: '模型',
           },
         },
         GeneralCard: {
           labels: {
             title: '通用',
             language: '语言',
-            theme: '加载项主题',
+            theme: '显示主题',
           },
           languages: {
             'zh-CN': '简体中文',

@@ -4,7 +4,30 @@ import { storeToRefs } from 'pinia';
 import { i18nSubPath } from 'src/utils/common';
 import { useSettingsStore } from 'stores/settings';
 
-const { baseUrl } = storeToRefs(useSettingsStore());
+const { baseUrl, model } = storeToRefs(useSettingsStore());
+
+const models = [
+  {
+    label: 'Qwen3 30B A3B Instruct 2507',
+    value: 'qwen/qwen3-30b-a3b-instruct-2507',
+  },
+  {
+    label: 'Qwen3 Coder 30B A3B Instruct',
+    value: 'qwen/qwen3-coder-30b-a3b-instruct',
+  },
+  {
+    label: 'Claude Sonnet 4',
+    value: 'anthropic/claude-sonnet-4',
+  },
+  {
+    label: 'GPT-5',
+    value: 'openai/gpt-5',
+  },
+  {
+    label: 'Gemini 2.5 Pro',
+    value: 'google/gemini-2.5-pro',
+  }
+];
 
 const i18n = i18nSubPath('components.SettingsCards.main.CompletionCard');
 </script>
@@ -25,7 +48,25 @@ const i18n = i18nSubPath('components.SettingsCards.main.CompletionCard');
           </q-item-label>
         </q-item-section>
         <q-item-section side>
-          <q-input dense input-class="text-right" name="baseUrl" v-model="baseUrl"/>
+          <q-input dense input-class="text-right" name="baseUrl" v-model="baseUrl" />
+        </q-item-section>
+      </q-item>
+      <q-item tag="label" v-ripple>
+        <q-item-section>
+          <q-item-label>
+            {{ i18n('labels.model') }}
+          </q-item-label>
+        </q-item-section>
+        <q-item-section side>
+          <q-select
+            borderless
+            dense
+            emit-value
+            map-options
+            name="models"
+            :options="models"
+            v-model="model"
+          />
         </q-item-section>
       </q-item>
     </q-list>

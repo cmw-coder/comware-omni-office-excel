@@ -47,14 +47,14 @@ export default {
           labels: {
             title: 'Completion',
             serviceUrl: 'Service URL',
-            singleParagraph: 'Single paragraph completion',
+            model: 'Model',
           },
         },
         GeneralCard: {
           labels: {
             title: 'General',
             language: 'Language',
-            theme: 'Add-ins Theme',
+            theme: 'Display Theme',
           },
           languages: {
             'zh-CN': 'Chinese Simplified',

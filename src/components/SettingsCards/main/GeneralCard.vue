@@ -48,6 +48,7 @@ const i18n = i18nSubPath('components.SettingsCards.main.GeneralCard');
         <q-item-section side>
           <q-select
             borderless
+            dense
             emit-value
             map-options
             name="locales"

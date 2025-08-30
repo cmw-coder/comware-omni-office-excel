@@ -7,7 +7,6 @@ import { DARK_MODES, DEFAULT_SERVER_URL_MAP } from 'stores/settings/constants';
 import type { Locales, NetworkZone } from 'stores/settings/types';
 import { checkUrlAccessible } from 'stores/settings/utils';
 
-
 export const useSettingsStore = defineStore(
   'settings',
   () => {
@@ -17,7 +16,7 @@ export const useSettingsStore = defineStore(
     const darkMode = ref<Dark['mode']>(Dark.mode);
     const developerMode = ref(false);
     const locale = ref<string>(i18nLocale.value);
-
+    const model = ref<string>('qwen/qwen3-30b-a3b-instruct-2507');
     const username = ref<string>('');
 
     const themeProps = computed(() => {
@@ -63,6 +62,7 @@ export const useSettingsStore = defineStore(
       darkMode,
       developerMode,
       locale,
+      model,
       username,
       themeProps,
       applyLocale,
