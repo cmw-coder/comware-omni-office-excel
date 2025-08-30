@@ -87,7 +87,7 @@ const triggerCompletion = async (statisticId: string, context: ContentContext) =
 };
 
 // TODO: Add unmount event
-onMounted(() => {
+onMounted(async () => {
   await officeHelper.registerParagraphChangedEvent(async (context) => {
     loading.value = true;
     const statisticId = statisticManager.begin('');

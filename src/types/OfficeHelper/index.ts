@@ -59,9 +59,9 @@ export class OfficeHelper {
       return false;
     }
 
-    await Word.run(async (context) => {
-      const range = context.document.getSelection();
-      range.insertText(text, 'End');
+    await Excel.run(async (context) => {
+      const activeCell = context.workbook.getActiveCell();
+      activeCell.values = [[text]];
       await context.sync();
     });
   }
@@ -78,14 +78,25 @@ export class OfficeHelper {
       return false;
     }
 
-    await Word.run(async (context) => {
-      context.document.onParagraphChanged.add(async () => {
-        await callback(await this.retrieveContext(staticRanges));
+    await Excel.run(async (context) => {
+      const worksheet = context.workbook.worksheets.getActiveWorksheet();
+
+      worksheet.onChanged.add(async (eventArgs) => {
+        if (
+          eventArgs.changeType === Excel.DataChangeType.cellDeleted ||
+          eventArgs.changeType === Excel.DataChangeType.cellInserted ||
+          eventArgs.changeType === Excel.DataChangeType.rangeEdited
+        ) {
+          await callback(await this.retrieveContext(staticRanges));
+        }
       });
+
       await context.sync();
 
-      console.log('Added event handler for when content is changed in paragraphs.');
+      console.log('Added event handler for when content is changed in Excel cells.');
     });
+
+    return true;
   }
 
   registerSelectionChangedEvent(
@@ -229,10 +240,11 @@ export class OfficeHelper {
           console.log('Error in retrieveContext:', error);
           reject(error instanceof Error ? error : new Error(String(error)));
         }
-      }).catch((error) => {
-        console.log('Excel.run error:', error);
-        reject(error instanceof Error ? error : new Error(String(error)));
-      });
+      })
+        .catch((error) => {
+          console.log('Excel.run error:', error);
+          reject(error instanceof Error ? error : new Error(String(error)));
+        });
     });
   }
 }
