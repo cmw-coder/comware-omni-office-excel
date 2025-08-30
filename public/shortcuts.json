@@ -1,0 +1,39 @@
+{
+  "actions": [
+    {
+      "id": "ComwareOmniAcceptCandidate",
+      "type": "ExecuteFunction",
+      "name": "Accept Completion Candidate (Comware Omni)"
+    },
+    {
+      "id": "ComwareOmniHideTaskpane",
+      "type": "ExecuteFunction",
+      "name": "Hide task pane (Comware Omni)"
+    },
+    {
+      "id": "ComwareOmniShowTaskpane",
+      "type": "ExecuteFunction",
+      "name": "Show task pane (Comware Omni)"
+    }
+  ],
+  "shortcuts": [
+    {
+      "action": "ComwareOmniAcceptCandidate",
+      "key": {
+        "default": "Alt+Enter"
+      }
+    },
+    {
+      "action": "ComwareOmniHideTaskpane",
+      "key": {
+        "default": "Ctrl+Alt+Right"
+      }
+    },
+    {
+      "action": "ComwareOmniShowTaskpane",
+      "key": {
+        "default": "Ctrl+Alt+Left"
+      }
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+name: comware-omni-office-excel CI
+
+on:
+  push:
+    branches: [ ci-*, main ]
+    tags: [ pre*, v* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  get-info:
+    runs-on: ubuntu-latest
+    outputs:
+      commitHash: ${{ steps.git-info.outputs.commitHash }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get git info
+        id: git-info
+        shell: bash
+        run: |
+          COMMIT_HASH=$(git rev-parse --short ${{ GITHUB.SHA }})
+          echo "commitHash=$COMMIT_HASH" >> $GITHUB_OUTPUT
+
+  build:
+    runs-on: ubuntu-latest
+    needs: get-info
+    env:
+      OUTPUT_FOLDER: ./dist/spa
+      RELEASE_FOLDER: ./release
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      - name: Install Dependencies and Build
+        run: |
+          pnpm i
+          pnpm run build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: comware-omni-office-excel_${{ needs.get-info.outputs.commitHash }}_${{ GITHUB.RUN_NUMBER }}
+          path: ${{ env.OUTPUT_FOLDER }}
+      - name: Prepare for release
+        if: ${{ startsWith(github.ref, 'refs/tags/pre') || startsWith(github.ref, 'refs/tags/v') }}
+        shell: bash
+        run: |
+          mkdir -p ${{ env.RELEASE_FOLDER }}
+          7z a -tzip -x!manifest.xml ${{ env.RELEASE_FOLDER }}/comware-omni-office-excel.zip "${{ env.OUTPUT_FOLDER }}/*"
+          cp ${{ env.OUTPUT_FOLDER }}/manifest.xml ${{ env.RELEASE_FOLDER }}/manifest.xml
+      - name: Upload release
+        if: ${{ startsWith(github.ref, 'refs/tags/pre') || startsWith(github.ref, 'refs/tags/v') }}
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          artifacts: |
+            ${{ env.RELEASE_FOLDER }}/comware-omni-office-excel.zip
+            ${{ env.RELEASE_FOLDER }}/manifest.xml
+          prerelease: ${{ startsWith(github.ref, 'refs/tags/pre') }}
