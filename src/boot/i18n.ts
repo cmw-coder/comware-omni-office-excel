@@ -1,6 +1,5 @@
 import { defineBoot } from '#q-app/wrappers';
 import { createI18n } from 'vue-i18n';
-import type { WritableComputedRef } from 'vue';
 
 import messages from 'src/i18n';
 
@@ -28,9 +27,7 @@ const i18n = createI18n<{ message: MessageSchema }, MessageLanguages>({
   messages,
 });
 
-export const i18nGlobal = i18n.global as typeof i18n.global & {
-  locale: WritableComputedRef<MessageLanguages>
-}
+export const i18nGlobal = i18n.global
 
 export default defineBoot(({ app }) => {
   app.use(i18n);

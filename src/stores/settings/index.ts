@@ -1,8 +1,8 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
 import { Dark } from 'quasar'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-import { i18nGlobal } from 'boot/i18n'
 import { DARK_MODES, DEFAULT_SERVER_URL_MAP } from 'stores/settings/constants'
 import type { Locales, NetworkZone } from 'stores/settings/types'
 import { checkUrlAccessible } from 'stores/settings/utils'
@@ -13,12 +13,15 @@ export const useSettingsStore = defineStore(
     const baseUrl = ref<string>('')
     const darkMode = ref<Dark['mode']>(Dark.mode)
     const developerMode = ref(false)
+
+    const { locale: i18nLocale } = useI18n()
     const locale = computed({
-      get: () => i18nGlobal.locale.value,
+      get: () => i18nLocale.value,
       set: (value: Locales) => {
-        i18nGlobal.locale.value = value
+        i18nLocale.value = value
       },
     })
+
     const singleParagraph = ref(true)
     const username = ref<string>('')
 
