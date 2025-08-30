@@ -70,7 +70,7 @@ export class OfficeHelper {
     return this._initialized && this._officeInfo !== undefined;
   }
 
-  async registerParagraphChangedEvent(
+  registerOnChange(
     callback: (contentContext: ContentContext) => Promise<void>,
     staticRanges: string = '',
   ) {
@@ -78,49 +78,50 @@ export class OfficeHelper {
       return false;
     }
 
-    await Excel.run(async (context) => {
-      const worksheet = context.workbook.worksheets.getActiveWorksheet();
-
-      worksheet.onChanged.add(async (eventArgs) => {
-        if (
-          eventArgs.changeType === Excel.DataChangeType.cellDeleted ||
-          eventArgs.changeType === Excel.DataChangeType.cellInserted ||
-          eventArgs.changeType === Excel.DataChangeType.rangeEdited
-        ) {
+    if (Office.context.requirements.isSetSupported('ExcelApi', '1.7')) {
+      // 支持 ExcelApi 1.7，使用 registerParagraphChangedEvent（现在是单元格变更事件）
+      Excel.run(async (context) => {
+        const worksheet = context.workbook.worksheets.getActiveWorksheet();
+        worksheet.onChanged.add(async (eventArgs) => {
+          if (
+            eventArgs.changeType === Excel.DataChangeType.cellDeleted ||
+            eventArgs.changeType === Excel.DataChangeType.cellInserted ||
+            eventArgs.changeType === Excel.DataChangeType.rangeEdited
+          ) {
+            await callback(await this.retrieveContext(staticRanges));
+          }
+        });
+        await context.sync();
+        console.log('Added event handler for when content is changed in Excel cells.');
+      }).catch((error) => console.error(error));
+    } else {
+      console.warn('ExcelApi 1.7 not supported, falling back to selection changed event');
+      Office.context.document.addHandlerAsync(Office.EventType.DocumentSelectionChanged, () => {
+        void (async () => {
           await callback(await this.retrieveContext(staticRanges));
-        }
+        })();
       });
-
-      await context.sync();
-
-      console.log('Added event handler for when content is changed in Excel cells.');
-    });
-
+    }
     return true;
   }
 
-  registerSelectionChangedEvent(
-    callback: (contentContext: ContentContext) => Promise<void>,
-    staticRanges: string = '',
-  ) {
+  unregisterOnChange() {
     if (!this._isAvailable()) {
       return false;
     }
 
-    Office.context.document.addHandlerAsync(Office.EventType.DocumentSelectionChanged, () => {
-      void (async () => {
-        await callback(await this.retrieveContext(staticRanges));
-      })();
-    });
-    return true;
-  }
-
-  unregisterSelectionChangedEvent() {
-    if (!this._isAvailable()) {
-      return false;
-    }
-
-    Office.context.document.removeHandlerAsync(Office.EventType.DocumentSelectionChanged);
+    if (Office.context.requirements.isSetSupported('ExcelApi', '1.7')) {
+      // ExcelApi 1.7 支持，移除 worksheet 事件处理器
+      Excel.run(async (context) => {
+        // TODO: 目前 Office.js 没有提供直接移除特定事件处理器的方法
+        // const worksheet = context.workbook.worksheets.getActiveWorksheet();
+        // worksheet.onChanged.remove();
+        await context.sync();
+        console.log('Removed event handler for content changes in Excel cells.');
+      }).catch((error) => console.error(error));
+    } else {
+      console.warn('ExcelApi 1.7 not supported, removing selection changed event handler');
+      Office.context.document.removeHandlerAsync(Office.EventType.DocumentSelectionChanged);    }
   }
 
   async retrieveContext(staticRanges: string = ''): Promise<ContentContext> {

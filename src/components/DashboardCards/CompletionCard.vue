@@ -87,21 +87,15 @@ const triggerCompletion = async (statisticId: string, context: ContentContext) =
 };
 
 // TODO: Add unmount event
-onMounted(async () => {
-  await officeHelper.registerParagraphChangedEvent(async (context) => {
+onMounted(() => {
+  officeHelper.registerOnChange(async (context) => {
     loading.value = true;
     const statisticId = statisticManager.begin('');
     statisticManager.setContext(statisticId, context);
     await triggerCompletion(statisticId, context);
     loading.value = false;
   });
-  officeHelper.registerSelectionChangedEvent(async (context) => {
-    loading.value = true;
-    const statisticId = statisticManager.begin('');
-    statisticManager.setContext(statisticId, context);
-    await triggerCompletion(statisticId, context);
-    loading.value = false;
-  });
+
   officeHelper.onAcceptCandidate = () => {
     if (
       generateResult.value !== GenerateResult.Cancel &&
@@ -114,7 +108,7 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-  officeHelper.unregisterSelectionChangedEvent();
+  officeHelper.unregisterOnChange();
   officeHelper.onAcceptCandidate = undefined;
 });
 </script>
