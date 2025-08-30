@@ -14,9 +14,9 @@ export const useSettingsStore = defineStore(
     const darkMode = ref<Dark['mode']>(Dark.mode)
     const developerMode = ref(false)
     const locale = computed({
-      get: () => i18nGlobal.locale,
+      get: () => i18nGlobal.locale.value,
       set: (value: Locales) => {
-        i18nGlobal.locale = value
+        i18nGlobal.locale.value = value
       },
     })
     const singleParagraph = ref(true)

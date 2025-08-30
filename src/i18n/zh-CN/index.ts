@@ -65,7 +65,7 @@ export default {
     },
     ThemeButton: {
       labels: {
-        toggleTheme: '切换主题',
+        switchTheme: '切换主题',
       },
     },
   },

@@ -17,7 +17,7 @@ export interface ReportSkuDto {
   end?: number
   count: number
   type: 'AIGC'
-  product: 'WORD'
+  product: 'EXCEL'
   firstClass: 'CODE'
   secondClass: string
   skuName: 'ADOPT' | 'GENE' | 'KEEP'

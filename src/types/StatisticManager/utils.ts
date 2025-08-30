@@ -51,7 +51,7 @@ export const acceptSku = async (
     end: Math.floor(DateTime.now().toMillis() / 1000),
     count: count ?? 0,
     type: 'AIGC',
-    product: 'WORD',
+    product: 'EXCEL',
     firstClass: 'CODE',
     secondClass: modelName,
     skuName: 'KEEP',
@@ -60,7 +60,7 @@ export const acceptSku = async (
     extra: PackageJson.version,
     subType: projectId,
   }
-  return await (process.env.DEV ? _reportSku([data]) : _pseudoReportSku([data]))
+  return await (process.env.DEV ? _pseudoReportSku([data]) : _reportSku([data]));
 }
 
 export const generateSku = async (
@@ -74,7 +74,7 @@ export const generateSku = async (
     end: Math.floor(DateTime.now().toMillis() / 1000),
     count: count ?? 0,
     type: 'AIGC',
-    product: 'WORD',
+    product: 'EXCEL',
     firstClass: 'CODE',
     secondClass: modelName,
     skuName: 'GENE',
@@ -83,5 +83,5 @@ export const generateSku = async (
     extra: PackageJson.version,
     subType: projectId,
   }
-  return await (process.env.DEV ? _reportSku([data]) : _pseudoReportSku([data]))
+  return await (process.env.DEV ? _pseudoReportSku([data]) : _reportSku([data]));
 }
