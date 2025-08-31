@@ -17,7 +17,7 @@ export const useSettingsStore = defineStore(
     const darkMode = ref<Dark['mode']>(Dark.mode);
     const developerMode = ref(false);
     const locale = ref<string>(i18nLocale.value);
-    const model = ref<string>('qwen/qwen3-30b-a3b-instruct-2507');
+    const model = ref<string>('google/gemini-2.5-flash');
     const staticRangesMap = reactive<Record<string, string>>({});
     const username = ref<string>('');
 

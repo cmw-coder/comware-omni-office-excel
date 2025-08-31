@@ -10,24 +10,20 @@ const { apiToken, baseUrl, model, staticRangesMap } = storeToRefs(useSettingsSto
 
 const models = [
   {
-    label: 'Qwen3 30B A3B Instruct 2507',
-    value: 'qwen/qwen3-30b-a3b-instruct-2507',
-  },
-  {
-    label: 'Qwen3 Coder 30B A3B Instruct',
-    value: 'qwen/qwen3-coder-30b-a3b-instruct',
-  },
-  {
     label: 'Claude Sonnet 4',
     value: 'anthropic/claude-sonnet-4',
   },
   {
-    label: 'GPT-5',
-    value: 'openai/gpt-5',
+    label: 'DeepSeek V3.1',
+    value: 'deepseek/deepseek-chat-v3.1',
   },
   {
     label: 'Gemini 2.5 Pro',
     value: 'google/gemini-2.5-pro',
+  },
+  {
+    label: 'Gemini 2.5 Flash',
+    value: 'google/gemini-2.5-flash',
   },
 ];
 
