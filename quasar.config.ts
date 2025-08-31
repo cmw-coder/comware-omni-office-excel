@@ -6,12 +6,12 @@ import { fileURLToPath } from 'node:url';
 import { ensureCertificatesAreInstalled } from 'office-addin-dev-certs';
 import { validateManifest } from 'office-addin-manifest';
 
-import { OFFICE_JS_SCRIPT_TAG } from 'src/constants/common';
 import { copyFileSync, cpSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { homedir } from 'node:os';
 
 const MANIFEST_PATH = 'manifest.xml';
+const OFFICE_JS_SCRIPT_TAG = `<script src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>`;
 const OFFICE_JS_SCRIPT_PLACEHOLDER = '%OFFICE_JS_SCRIPT%';
 
 const enforceManifest = async (manifestPath: string) => {
