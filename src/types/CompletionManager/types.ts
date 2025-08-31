@@ -101,21 +101,6 @@ export class PromptElements {
   }
 
   stringify() {
-    const list: string[] = [];
-    list.push(
-      `当前正在编辑的单元格位置： ${this._contentContext.current.address} ，内容： ${this._contentContext.current.content}`,
-    );
-    for (const item of this._contentContext.relative) {
-      list.push(
-        `相对位置(${item.dx}, ${item.dy})的单元格地址： ${item.address} ，内容： ${item.content}`,
-      );
-    }
-    for (const item of this._contentContext.static) {
-      list.push(`静态位置的单元格地址： ${item.address} ，内容： ${item.content}`);
-    }
-    list.push(
-      `请你补全当前正在编辑的单元格的内容，只需要给我补全的内容即可，不要返回其他多余文本。`,
-    );
-    return list.join('\n');
+    return JSON.stringify(this._contentContext);
   }
 }

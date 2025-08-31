@@ -24,9 +24,8 @@ export class CompletionManager {
     this._abortController?.abort();
     this._abortController = new AbortController();
 
-    const inputs = promptElements.stringify();
     try {
-      const result = await generate(inputs, this._abortController.signal);
+      const result = await generate(promptElements.stringify(), this._abortController.signal);
       if (result?.length) {
         this._cache.put(cacheKey, [result]);
         return {
