@@ -49,6 +49,7 @@ export default {
             serviceUrl: '服务 URL',
             apiToken: 'API 令牌',
             model: '模型',
+            staticRanges: '静态单元格',
           },
         },
         GeneralCard: {

@@ -102,7 +102,6 @@ export class PromptElements {
 
   stringify() {
     const list: string[] = [];
-    list.push(`你现在是一个测试专家，我需要你参考当前测试用例表格的数据，并补全我要求的内容。`);
     list.push(
       `当前正在编辑的单元格位置： ${this._contentContext.current.address} ，内容： ${this._contentContext.current.content}`,
     );

@@ -1,13 +1,6 @@
 import { rawModelApi } from 'boot/axios';
 import { useSettingsStore } from 'stores/settings';
 
-export const digestMessage = async (message: string) => {
-  const msgUint8 = new TextEncoder().encode(message);
-  const hashBuffer = await crypto.subtle.digest('SHA-1', msgUint8);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-};
-
 type ResponseUsage = {
   prompt_tokens: number;
   completion_tokens: number;
@@ -48,8 +41,6 @@ interface CompletionBody {
 
 export const generate = async (content: string, signal: AbortSignal) => {
   const settingsStore = useSettingsStore();
-
-  console.log(settingsStore.apiToken, settingsStore.model);
 
   const { data } = await rawModelApi.post<CompletionBody>(
     '/chat/completions',

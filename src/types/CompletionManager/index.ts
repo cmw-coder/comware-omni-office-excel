@@ -8,14 +8,17 @@ export class CompletionManager {
   private _abortController?: AbortController;
   private _cache = new LRUCache<string[]>(100);
 
-  async generate(promptElements: PromptElements): Promise<GenerateResponse> {
+  async generate(promptElements: PromptElements, noCache = false): Promise<GenerateResponse> {
     const cacheKey = promptElements.cacheKey;
-    const completionCached = this._cache.get(cacheKey);
-    if (completionCached) {
-      return {
-        result: GenerateResult.Success,
-        data: completionCached,
-      };
+
+    if (!noCache) {
+      const completionCached = this._cache.get(cacheKey);
+      if (completionCached) {
+        return {
+          result: GenerateResult.Success,
+          data: completionCached,
+        };
+      }
     }
 
     this._abortController?.abort();

@@ -1,6 +1,6 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { Dark } from 'quasar';
-import { computed, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { DARK_MODES, DEFAULT_SERVER_URL_MAP } from 'stores/settings/constants';
@@ -18,6 +18,7 @@ export const useSettingsStore = defineStore(
     const developerMode = ref(false);
     const locale = ref<string>(i18nLocale.value);
     const model = ref<string>('qwen/qwen3-30b-a3b-instruct-2507');
+    const staticRangesMap = reactive<Record<string, string>>({});
     const username = ref<string>('');
 
     const themeProps = computed(() => {
@@ -65,6 +66,7 @@ export const useSettingsStore = defineStore(
       developerMode,
       locale,
       model,
+      staticRangesMap,
       username,
       themeProps,
       applyLocale,

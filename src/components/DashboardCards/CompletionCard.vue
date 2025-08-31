@@ -28,14 +28,14 @@ const manualCompletion = async () => {
   const statisticId = statisticManager.begin('');
   const context = await officeHelper.retrieveContext();
   statisticManager.setContext(statisticId, context);
-  await triggerCompletion(statisticId, await officeHelper.retrieveContext());
+  await triggerCompletion(statisticId, await officeHelper.retrieveContext(), true);
   loading.value = false;
 };
 
-const triggerCompletion = async (statisticId: string, context: ContentContext) => {
+const triggerCompletion = async (statisticId: string, context: ContentContext, noCache = false) => {
   const promptElements = new PromptElements(context);
   statisticManager.setElements(statisticId, promptElements);
-  const { result, data } = await completionManager.generate(promptElements);
+  const { result, data } = await completionManager.generate(promptElements, noCache);
   console.log({ result, data });
   switch (result) {
     case GenerateResult.Cancel: {

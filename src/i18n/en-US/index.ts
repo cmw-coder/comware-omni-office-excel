@@ -49,6 +49,7 @@ export default {
             serviceUrl: 'Service URL',
             apiToken: 'API Token',
             model: 'Model',
+            staticRanges: 'Static Cells',
           },
         },
         GeneralCard: {

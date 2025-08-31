@@ -1,3 +1,5 @@
+import { uid } from 'quasar';
+
 import { OFFICE_JS_SCRIPT_TAG } from 'src/constants/common';
 import type { ContentContext } from 'src/types/common';
 
@@ -9,10 +11,11 @@ export class OfficeHelper {
   private _officeInfo?: OfficeInfo;
 
   onAcceptCandidate?: (() => void) | undefined;
+  staticRanges?: string;
 
   async init() {
     if (this._initialized) {
-      console.warn('OfficeHelper is already initialized');
+      console.warn('[OfficeHelper] OfficeHelper is already initialized');
       return;
     }
 
@@ -41,7 +44,7 @@ export class OfficeHelper {
       });
     } else {
       console.warn(
-        'Office.js is not loaded.\n' +
+        '[OfficeHelper] Office.js is not loaded.\n' +
           'Please make sure it is loaded before calling OfficeHelper.init()\n' +
           `By insert ${OFFICE_JS_SCRIPT_TAG} in your HTML head tag`,
       );
@@ -71,8 +74,7 @@ export class OfficeHelper {
   }
 
   registerOnChange(
-    callback: (contentContext: ContentContext) => Promise<void>,
-    staticRanges: string = '',
+    callback: (contentContext: ContentContext) => Promise<void>
   ) {
     if (!this._isAvailable()) {
       return false;
@@ -90,22 +92,22 @@ export class OfficeHelper {
             eventArgs.changeType === Excel.DataChangeType.cellInserted ||
             eventArgs.changeType === Excel.DataChangeType.rangeEdited
           ) {
-            await callback(await this.retrieveContext(staticRanges));
+            await callback(await this.retrieveContext());
           }
         });
         // 监听选择变更事件作为补充（当用户切换单元格时也可能表示编辑意图）
         worksheet.onSelectionChanged.add(async () => {
-          await callback(await this.retrieveContext(staticRanges));
+          await callback(await this.retrieveContext());
         });
 
         await context.sync();
-        console.log('Added multiple event handlers for Excel cell operations.');
+        console.log('[OfficeHelper] Added multiple event handlers for Excel cell operations.');
       }).catch((error) => console.error(error));
     } else {
-      console.warn('ExcelApi 1.7 not supported, falling back to selection changed event');
+      console.warn('[OfficeHelper] ExcelApi 1.7 not supported, falling back to selection changed event');
       Office.context.document.addHandlerAsync(Office.EventType.DocumentSelectionChanged, () => {
         void (async () => {
-          await callback(await this.retrieveContext(staticRanges));
+          await callback(await this.retrieveContext());
         })();
       });
     }
@@ -125,15 +127,15 @@ export class OfficeHelper {
         // worksheet.onChanged.remove();
         // worksheet.onSelectionChanged.remove();
         await context.sync();
-        console.log('Removed event handler for content changes in Excel cells.');
+        console.log('[OfficeHelper] Removed event handler for content changes in Excel cells.');
       }).catch((error) => console.error(error));
     } else {
-      console.warn('ExcelApi 1.7 not supported, removing selection changed event handler');
+      console.warn('[OfficeHelper] ExcelApi 1.7 not supported, removing selection changed event handler');
       Office.context.document.removeHandlerAsync(Office.EventType.DocumentSelectionChanged);
     }
   }
 
-  async retrieveContext(staticRanges: string = ''): Promise<ContentContext> {
+  async retrieveContext(): Promise<ContentContext> {
     return new Promise((resolve, reject) => {
       Excel.run(async (context) => {
         try {
@@ -145,9 +147,9 @@ export class OfficeHelper {
 
           // 获取静态范围（仅当staticRanges不为空时）
           let usedRange;
-          if (staticRanges) {
-            usedRange = currentSheet.getRanges(staticRanges);
-            usedRange.load(['address', 'values']);
+          if (this.staticRanges) {
+            usedRange = currentSheet.getRanges(this.staticRanges);
+            usedRange.load(['address', 'values', 'areas']);
           }
 
           await context.sync();
@@ -213,6 +215,9 @@ export class OfficeHelper {
 
           // 填充静态范围数据
           if (usedRange) {
+            usedRange.areas.load(['address', 'values']);
+            await context.sync();
+
             const staticRangesArray = usedRange.areas.items;
             staticRangesArray.forEach((range) => {
               const rowCount = range.values?.length || 0;
@@ -243,17 +248,73 @@ export class OfficeHelper {
             });
           }
 
-          console.log('Retrieved context:', result);
+          console.log('[OfficeHelper] Retrieved context:', result);
 
           resolve(result);
         } catch (error) {
-          console.log('Error in retrieveContext:', error);
+          console.warn('[OfficeHelper] Error in retrieveContext:', error);
           reject(error instanceof Error ? error : new Error(String(error)));
         }
       }).catch((error) => {
-        console.log('Excel.run error:', error);
+        console.warn('[OfficeHelper] Excel.run error:', error);
         reject(error instanceof Error ? error : new Error(String(error)));
       });
     });
+  }
+
+  async getFileId(): Promise<string> {
+    if (!this._isAvailable()) {
+      return '';
+    }
+
+    try {
+      // 尝试通过Excel API获取工作簿的内部属性作为稳定标识符
+      return new Promise((resolve) => {
+        Excel.run(async (context) => {
+          try {
+            // 获取工作簿的自定义属性
+            const customProperties = context.workbook.properties.custom;
+            customProperties.load();
+
+            await context.sync();
+
+            let fileId: string;
+            try {
+              const existingId = customProperties.getItem('ComwareOmniFileId');
+              existingId.load('value');
+              await context.sync();
+              fileId = existingId.value;
+            } catch {
+              fileId = uid();
+              try {
+                customProperties.add('ComwareOmniFileId', fileId);
+                await context.sync();
+                console.log('[OfficeHelper] Created and stored new file ID:', fileId);
+              } catch (setError) {
+                console.warn(
+                  '[OfficeHelper] Cannot set custom property, using generated ID:',
+                  setError,
+                );
+                // 如果无法设置自定义属性，仍然返回生成的ID
+              }
+            }
+
+            resolve(fileId);
+          } catch (error) {
+            console.error('[OfficeHelper] Error getting stable file ID:', error);
+            // 如果以上方法都失败，生成一个基于当前时间的临时标识符
+            const fallbackId = `temp-${Date.now()}-${Math.random().toString(36).substring(2)}`;
+            console.warn('[OfficeHelper] Using fallback temporary ID:', fallbackId);
+            resolve(fallbackId);
+          }
+        }).catch((error) => {
+          console.error('[OfficeHelper] Excel.run error in getCurrentFileId:', error);
+          resolve('');
+        });
+      });
+    } catch (error) {
+      console.error('[OfficeHelper] Error in getCurrentFileId:', error);
+      return '';
+    }
   }
 }
