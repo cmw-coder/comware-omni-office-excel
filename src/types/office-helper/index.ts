@@ -3,12 +3,13 @@ import { uid } from 'quasar';
 import { OFFICE_JS_SCRIPT_TAG } from 'src/constants/common';
 import type { ContentContext } from 'src/types/common';
 
-import type { OfficeInfo } from './types';
-import { columnNumberToString, columnStringToNumber } from './utils';
+import type { CellData, OfficeInfo, RangeAddress, SheetChangedHandler } from './types';
+import { columnIndexToString, columnStringToIndex, stringifyRangeAreaAddress } from './utils';
 
 export class OfficeHelper {
   private _initialized = false;
   private _officeInfo?: OfficeInfo;
+  private _onSheetChangedHandlerMap = new Map<string, SheetChangedHandler>();
 
   onAcceptCandidate?: (() => void) | undefined;
   staticRanges?: string;
@@ -21,27 +22,9 @@ export class OfficeHelper {
 
     if (Office) {
       this._officeInfo = await Office.onReady();
-      Office.actions.associate('ComwareOmniAcceptCandidate', () => {
-        this.onAcceptCandidate?.();
-      });
-      Office.actions.associate('ComwareOmniHideTaskpane', () => {
-        (async () => {
-          try {
-            await Office.addin.hide().catch((error) => console.log(error));
-          } catch (error) {
-            console.log(error);
-          }
-        })().catch((error) => console.log(error));
-      });
-      Office.actions.associate('ComwareOmniShowTaskpane', () => {
-        (async () => {
-          try {
-            await Office.addin.showAsTaskpane();
-          } catch (error) {
-            console.log(error);
-          }
-        })().catch((error) => console.log(error));
-      });
+      await this._registryEvents();
+      this._associateActions();
+      console.log('[OfficeHelper] Office.js is ready:', this._officeInfo);
     } else {
       console.warn(
         '[OfficeHelper] Office.js is not loaded.\n' +
@@ -57,8 +40,8 @@ export class OfficeHelper {
     return this._officeInfo;
   }
 
-  async insertText(text: string) {
-    if (!this._isAvailable()) {
+  async setCellContent(text: string) {
+    if (!this._isAvailable) {
       return false;
     }
 
@@ -69,53 +52,81 @@ export class OfficeHelper {
     });
   }
 
-  private _isAvailable(): boolean {
-    return this._initialized && this._officeInfo !== undefined;
+  addOnSheetChanged(id: string, callback: SheetChangedHandler) {
+    this._onSheetChangedHandlerMap.set(id, callback);
   }
 
-  registerOnChange(
-    callback: (contentContext: ContentContext) => Promise<void>
-  ) {
-    if (!this._isAvailable()) {
+  registerOnChange(callback: (contentContext: ContentContext) => Promise<void>) {
+    if (!this._isAvailable) {
       return false;
     }
 
-    if (Office.context.requirements.isSetSupported('ExcelApi', '1.7')) {
-      // 支持 ExcelApi 1.7，使用多种事件监听来捕获更多用户操作
-      Excel.run(async (context) => {
-        const worksheet = context.workbook.worksheets.getActiveWorksheet();
+    Excel.run(async (context) => {
+      const worksheet = context.workbook.worksheets.getActiveWorksheet();
 
-        // 监听单元格内容变更事件
-        worksheet.onChanged.add(async (eventArgs) => {
-          if (
-            eventArgs.changeType === Excel.DataChangeType.cellDeleted ||
-            eventArgs.changeType === Excel.DataChangeType.cellInserted ||
-            eventArgs.changeType === Excel.DataChangeType.rangeEdited
-          ) {
-            await callback(await this.retrieveContext());
-          }
-        });
-        // 监听选择变更事件作为补充（当用户切换单元格时也可能表示编辑意图）
-        worksheet.onSelectionChanged.add(async () => {
+      // 监听单元格内容变更事件
+      worksheet.onChanged.add(async (eventArgs) => {
+        if (
+          eventArgs.changeType === Excel.DataChangeType.cellDeleted ||
+          eventArgs.changeType === Excel.DataChangeType.cellInserted ||
+          eventArgs.changeType === Excel.DataChangeType.rangeEdited
+        ) {
           await callback(await this.retrieveContext());
-        });
-
-        await context.sync();
-        console.log('[OfficeHelper] Added multiple event handlers for Excel cell operations.');
-      }).catch((error) => console.error(error));
-    } else {
-      console.warn('[OfficeHelper] ExcelApi 1.7 not supported, falling back to selection changed event');
-      Office.context.document.addHandlerAsync(Office.EventType.DocumentSelectionChanged, () => {
-        void (async () => {
-          await callback(await this.retrieveContext());
-        })();
+        }
       });
-    }
-    return true;
+      // 监听选择变更事件作为补充（当用户切换单元格时也可能表示编辑意图）
+      worksheet.onSelectionChanged.add(async () => {
+        await callback(await this.retrieveContext());
+      });
+
+      await context.sync();
+      console.log('[OfficeHelper] Added multiple event handlers for Excel cell operations.');
+    }).catch((error) => console.error(error));
   }
 
+  // registerOnChange(callback: (contentContext: ContentContext) => Promise<void>) {
+  //   if (!this._isAvailable) {
+  //     return false;
+  //   }
+  //
+  //   if (Office.context.requirements.isSetSupported('ExcelApi', '1.7')) {
+  //     // 支持 ExcelApi 1.7，使用多种事件监听来捕获更多用户操作
+  //     Excel.run(async (context) => {
+  //       const worksheet = context.workbook.worksheets.getActiveWorksheet();
+  //
+  //       // 监听单元格内容变更事件
+  //       worksheet.onChanged.add(async (eventArgs) => {
+  //         if (
+  //           eventArgs.changeType === Excel.DataChangeType.cellDeleted ||
+  //           eventArgs.changeType === Excel.DataChangeType.cellInserted ||
+  //           eventArgs.changeType === Excel.DataChangeType.rangeEdited
+  //         ) {
+  //           await callback(await this.retrieveContext());
+  //         }
+  //       });
+  //       // 监听选择变更事件作为补充（当用户切换单元格时也可能表示编辑意图）
+  //       worksheet.onSelectionChanged.add(async () => {
+  //         await callback(await this.retrieveContext());
+  //       });
+  //
+  //       await context.sync();
+  //       console.log('[OfficeHelper] Added multiple event handlers for Excel cell operations.');
+  //     }).catch((error) => console.error(error));
+  //   } else {
+  //     console.warn(
+  //       '[OfficeHelper] ExcelApi 1.7 not supported, falling back to selection changed event',
+  //     );
+  //     Office.context.document.addHandlerAsync(Office.EventType.DocumentSelectionChanged, () => {
+  //       void (async () => {
+  //         await callback(await this.retrieveContext());
+  //       })();
+  //     });
+  //   }
+  //   return true;
+  // }
+
   unregisterOnChange() {
-    if (!this._isAvailable()) {
+    if (!this._isAvailable) {
       return false;
     }
 
@@ -130,9 +141,54 @@ export class OfficeHelper {
         console.log('[OfficeHelper] Removed event handler for content changes in Excel cells.');
       }).catch((error) => console.error(error));
     } else {
-      console.warn('[OfficeHelper] ExcelApi 1.7 not supported, removing selection changed event handler');
+      console.warn(
+        '[OfficeHelper] ExcelApi 1.7 not supported, removing selection changed event handler',
+      );
       Office.context.document.removeHandlerAsync(Office.EventType.DocumentSelectionChanged);
     }
+  }
+
+  async retrieveRanges(rangeAreasAddress: RangeAddress[]): Promise<CellData[]> {
+    return this.retrieveRangesRaw(stringifyRangeAreaAddress(rangeAreasAddress));
+  }
+
+  async retrieveRangesRaw(address: string): Promise<CellData[]> {
+    return new Promise((resolve, reject) => {
+      Excel.run(async (context) => {
+        try {
+          const currentSheet = context.workbook.worksheets.getActiveWorksheet();
+          const ranges = currentSheet.getRanges(address);
+          ranges.load(['address', 'values', 'areas']);
+          await context.sync();
+
+          const result = ranges.areas.items
+            .map((range) => {
+              const startCol = range.columnIndex;
+              const startRow = range.rowIndex;
+              return range.values.map((row, rowIndex) =>
+                row.map((cell, cellIndex) => ({
+                  address: {
+                    column: startCol + cellIndex,
+                    row: startRow + rowIndex,
+                  },
+                  content: cell?.toString() || '',
+                })),
+              );
+            })
+            .flat(2);
+
+          console.log('[OfficeHelper] Retrieved ranges:', result);
+
+          resolve(result);
+        } catch (error) {
+          console.warn('[OfficeHelper] Error in retrieveRanges:', error);
+          reject(error instanceof Error ? error : new Error(String(error)));
+        }
+      }).catch((error) => {
+        console.warn('[OfficeHelper] Excel.run error:', error);
+        reject(error instanceof Error ? error : new Error(String(error)));
+      });
+    });
   }
 
   async retrieveContext(): Promise<ContentContext> {
@@ -143,7 +199,7 @@ export class OfficeHelper {
           const activeCell = context.workbook.getActiveCell();
 
           // 加载当前激活单元格的地址和内容
-          activeCell.load(['address', 'values']);
+          activeCell.load(['address', 'columnIndex', 'rowIndex', 'values']);
 
           // 获取静态范围（仅当staticRanges不为空时）
           let usedRange;
@@ -155,13 +211,14 @@ export class OfficeHelper {
           await context.sync();
 
           // 解析当前单元格地址获取行列信息
+          console.log(`Active Cell: (${activeCell.columnIndex}, ${activeCell.rowIndex})`);
           const currentAddress = activeCell.address;
           const match = currentAddress.match(/([A-Z]+)(\d+)/);
           if (!match || !match[1] || !match[2]) {
             throw new Error('Invalid cell address format');
           }
 
-          const currentCol = columnStringToNumber(match[1]);
+          const currentCol = columnStringToIndex(match[1]);
           const currentRow = parseInt(match[2]);
 
           // 获取周围距离小于2的单元格内容
@@ -173,7 +230,7 @@ export class OfficeHelper {
               const newCol = currentCol + dx;
 
               if (newRow > 0 && newCol > 0) {
-                const newAddress = columnNumberToString(newCol) + newRow;
+                const newAddress = columnIndexToString(newCol) + newRow;
                 nearbyAddresses.push(newAddress);
               }
             }
@@ -201,7 +258,7 @@ export class OfficeHelper {
             const cellAddress = cell.address;
             const cellMatch = cellAddress.match(/([A-Z]+)(\d+)/);
             if (cellMatch && cellMatch[1] && cellMatch[2]) {
-              const cellCol = columnStringToNumber(cellMatch[1]);
+              const cellCol = columnStringToIndex(cellMatch[1]);
               const cellRow = parseInt(cellMatch[2]);
 
               result.relative.push({
@@ -231,11 +288,11 @@ export class OfficeHelper {
                     const rangeAddress = range.address;
                     const rangeMatch = rangeAddress.match(/([A-Z]+)(\d+)/);
                     if (rangeMatch && rangeMatch[1] && rangeMatch[2]) {
-                      const startCol = columnStringToNumber(rangeMatch[1]);
+                      const startCol = columnStringToIndex(rangeMatch[1]);
                       const startRow = parseInt(rangeMatch[2]);
                       const actualCol = startCol + col;
                       const actualRow = startRow + row;
-                      const actualAddress = columnNumberToString(actualCol) + actualRow;
+                      const actualAddress = columnIndexToString(actualCol) + actualRow;
 
                       result.static.push({
                         address: actualAddress,
@@ -263,19 +320,16 @@ export class OfficeHelper {
   }
 
   async getFileId(): Promise<string> {
-    if (!this._isAvailable()) {
+    if (!this._isAvailable) {
       return '';
     }
 
     try {
-      // 尝试通过Excel API获取工作簿的内部属性作为稳定标识符
       return new Promise((resolve) => {
         Excel.run(async (context) => {
           try {
-            // 获取工作簿的自定义属性
             const customProperties = context.workbook.properties.custom;
             customProperties.load();
-
             await context.sync();
 
             let fileId: string;
@@ -316,5 +370,38 @@ export class OfficeHelper {
       console.error('[OfficeHelper] Error in getCurrentFileId:', error);
       return '';
     }
+  }
+
+  private _associateActions() {
+    Office.actions.associate('ComwareOmniAcceptCandidate', () => {
+      this.onAcceptCandidate?.();
+    });
+    Office.actions.associate('ComwareOmniHideTaskpane', () => {
+      Office.addin.hide().catch((error) => console.log(error));
+    });
+    Office.actions.associate('ComwareOmniShowTaskpane', () => {
+      Office.addin.showAsTaskpane().catch((error) => console.log(error));
+    });
+  }
+
+  private get _isAvailable(): boolean {
+    return this._initialized && this._officeInfo !== undefined;
+  }
+
+  private async _registryEvents() {
+    return new Promise<void>((resolve, reject) => {
+      Excel.run(async (context) => {
+        context.workbook.worksheets.items.forEach((sheet) => {
+          sheet.onChanged.add(async (eventArgs) => {
+            console.log(`[OfficeHelper] Sheet "${sheet.name}" changed:`, { eventArgs });
+            for (const handler of this._onSheetChangedHandlerMap.values()) {
+              await handler(context, sheet, eventArgs);
+            }
+          });
+        });
+        await context.sync();
+        resolve();
+      }).catch((error) => reject(error instanceof Error ? error : new Error(String(error))));
+    });
   }
 }

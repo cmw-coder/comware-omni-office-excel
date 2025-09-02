@@ -8,15 +8,17 @@ import type { ContentContext } from 'src/types/common';
 import { GenerateResult, PromptElements } from 'src/types/completion-manager/types';
 import { i18nSubPath } from 'src/utils/common';
 
+const templateId = 'components.DashboardCards.CompletionCard';
+
 const currentStatisticId = ref<string>();
 const loading = ref(false);
 const generateData = ref('');
 const generateResult = ref<GenerateResult>();
 
-const i18n = i18nSubPath('components.DashboardCards.CompletionCard');
+const i18n = i18nSubPath(templateId);
 
 const insertCompletion = async () => {
-  await officeHelper.insertText(generateData.value);
+  await officeHelper.setCellContent(generateData.value);
   if (currentStatisticId.value) {
     statisticManager.accept(currentStatisticId.value);
     currentStatisticId.value = undefined;
@@ -80,6 +82,24 @@ const triggerCompletion = async (statisticId: string, context: ContentContext, n
 
 // TODO: Add unmount event
 onMounted(() => {
+  officeHelper.addOnSheetChanged(templateId, async (context, worksheet, eventArgs) => {
+    if (
+      eventArgs.changeType === Excel.DataChangeType.cellDeleted ||
+      eventArgs.changeType === Excel.DataChangeType.cellInserted ||
+      eventArgs.changeType === Excel.DataChangeType.rangeEdited
+    ) {
+      const cellDataList = await officeHelper.retrieveRangesRaw(eventArgs.address);
+      console.log('Cell data changed:', cellDataList);
+    }
+
+    // loading.value = true;
+    // const statisticId = statisticManager.begin('');
+    // const context = await officeHelper.retrieveContext();
+    // statisticManager.setContext(statisticId, context);
+    // await triggerCompletion(statisticId, context);
+    // loading.value = false;
+  });
+
   officeHelper.registerOnChange(async (context) => {
     loading.value = true;
     const statisticId = statisticManager.begin('');
