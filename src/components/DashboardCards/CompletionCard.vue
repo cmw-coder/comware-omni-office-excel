@@ -3,10 +3,10 @@ import { onMounted, onUnmounted, ref } from 'vue';
 
 import { completionManager } from 'boot/completion';
 import { officeHelper } from 'boot/office';
-import type { ContentContext } from 'src/types/common';
-import { GenerateResult, PromptElements } from 'src/types/CompletionManager/types';
-import { i18nSubPath } from 'src/utils/common';
 import { statisticManager } from 'boot/statistic';
+import type { ContentContext } from 'src/types/common';
+import { GenerateResult, PromptElements } from 'src/types/completion-manager/types';
+import { i18nSubPath } from 'src/utils/common';
 
 const currentStatisticId = ref<string>();
 const loading = ref(false);
@@ -43,14 +43,14 @@ const triggerCompletion = async (statisticId: string, context: ContentContext, n
       statisticManager.abort(statisticId);
       break;
     }
-    case GenerateResult.Error: {
-      generateData.value = data[0] ?? '';
+    case GenerateResult.Empty: {
+      generateData.value = i18n('labels.noNeedToComplete');
       generateResult.value = result;
       statisticManager.abort(statisticId);
       break;
     }
-    case GenerateResult.Empty: {
-      generateData.value = i18n('labels.noNeedToComplete');
+    case GenerateResult.Error: {
+      generateData.value = data[0] ?? '';
       generateResult.value = result;
       statisticManager.abort(statisticId);
       break;

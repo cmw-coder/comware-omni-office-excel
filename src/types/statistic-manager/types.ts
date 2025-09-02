@@ -5,7 +5,7 @@ import { acceptSku, generateSku } from './utils';
 
 import { NEW_LINE_REGEX } from 'src/constants/common';
 import type { ContentContext } from 'src/types/common';
-import type { PromptElements } from 'src/types/CompletionManager/types';
+import type { PromptElements } from 'src/types/completion-manager/types';
 
 export interface CompletionCandidate {
   index: number;

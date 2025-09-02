@@ -1,5 +1,6 @@
 import { defineBoot } from '#q-app/wrappers';
-import { OfficeHelper } from 'src/types/OfficeHelper';
+
+import { OfficeHelper } from 'src/types/office-helper';
 
 declare module 'vue' {
   // noinspection JSUnusedGlobalSymbols

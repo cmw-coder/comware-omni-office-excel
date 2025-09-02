@@ -1,6 +1,6 @@
 import { defineBoot } from '#q-app/wrappers';
 
-import { CompletionManager } from 'src/types/CompletionManager';
+import { CompletionManager } from 'src/types/completion-manager';
 
 declare module 'vue' {
   // noinspection JSUnusedGlobalSymbols

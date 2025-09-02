@@ -1,6 +1,6 @@
 import { defineBoot } from '#q-app/wrappers';
 
-import { StatisticManager } from 'src/types/StatisticManager';
+import { StatisticManager } from 'src/types/statistic-manager';
 
 declare module 'vue' {
   // noinspection JSUnusedGlobalSymbols

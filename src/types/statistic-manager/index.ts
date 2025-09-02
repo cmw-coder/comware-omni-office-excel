@@ -2,7 +2,7 @@ import type { CompletionCandidate } from './types';
 import { StatisticsData } from './types';
 
 import type { ContentContext } from 'src/types/common';
-import type { PromptElements } from 'src/types/CompletionManager/types';
+import type { PromptElements } from 'src/types/completion-manager/types';
 
 export class StatisticManager {
   private _dataMap = new Map<string, StatisticsData>();
