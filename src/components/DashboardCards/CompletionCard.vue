@@ -100,23 +100,23 @@ onMounted(() => {
     // loading.value = false;
   });
 
-  officeHelper.registerOnChange(async (context) => {
-    loading.value = true;
-    const statisticId = statisticManager.begin('');
-    statisticManager.setContext(statisticId, context);
-    await triggerCompletion(statisticId, context);
-    loading.value = false;
-  });
-
-  officeHelper.onAcceptCandidate = () => {
-    if (
-      generateResult.value !== GenerateResult.Cancel &&
-      generateResult.value !== GenerateResult.Success
-    ) {
-      return;
-    }
-    insertCompletion().catch((error) => console.error(error));
-  };
+  // officeHelper.registerOnChange(async (context) => {
+  //   loading.value = true;
+  //   const statisticId = statisticManager.begin('');
+  //   statisticManager.setContext(statisticId, context);
+  //   await triggerCompletion(statisticId, context);
+  //   loading.value = false;
+  // });
+  //
+  // officeHelper.onAcceptCandidate = () => {
+  //   if (
+  //     generateResult.value !== GenerateResult.Cancel &&
+  //     generateResult.value !== GenerateResult.Success
+  //   ) {
+  //     return;
+  //   }
+  //   insertCompletion().catch((error) => console.error(error));
+  // };
 });
 
 onUnmounted(() => {
