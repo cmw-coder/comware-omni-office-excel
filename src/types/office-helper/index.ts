@@ -3,12 +3,9 @@ import { uid } from 'quasar';
 import { OFFICE_JS_SCRIPT_TAG } from 'src/constants/common';
 import type { CellAddress, CellData, RangeAddress } from 'src/types/common';
 
-import type {
-  OfficeInfo,
-  SheetChangedHandler,
-  SheetSelectionChangedHandler,
-} from './types';
+import type { OfficeInfo, SheetChangedHandler, SheetSelectionChangedHandler } from './types';
 import { stringifyRangeAreaAddress } from './utils';
+import { PROPERTY_FILE_ID_KEY } from 'src/types/office-helper/constants';
 
 export class OfficeHelper {
   private _initialized = false;
@@ -20,7 +17,7 @@ export class OfficeHelper {
 
   async init() {
     if (this._initialized) {
-      console.warn('[OfficeHelper] OfficeHelper is already initialized');
+      console.warn('[OfficeHelper](init)', 'Instance is already initialized');
       return;
     }
 
@@ -28,10 +25,11 @@ export class OfficeHelper {
       this._officeInfo = await Office.onReady();
       await this._registryEvents();
       this._associateActions();
-      console.log('[OfficeHelper] Office.js is ready:', this._officeInfo);
+      console.log('[OfficeHelper](init)', 'Instance is ready:', this._officeInfo);
     } else {
       console.error(
-        '[OfficeHelper] Office.js is not loaded.\n' +
+        '[OfficeHelper](init)',
+        '"Office.js" is not loaded.\n' +
           'Please make sure it is loaded before calling OfficeHelper.init()\n' +
           `By insert ${OFFICE_JS_SCRIPT_TAG} in your HTML head tag`,
       );
@@ -73,6 +71,10 @@ export class OfficeHelper {
   }
 
   async retrieveCurrentCellData(): Promise<CellData> {
+    if (!this._isAvailable) {
+      throw new Error('[OfficeHelper](retrieveCurrentCellData) Instance is not available');
+    }
+
     return new Promise((resolve, reject) => {
       Excel.run(async (context) => {
         try {
@@ -85,23 +87,26 @@ export class OfficeHelper {
               column: currentCell.columnIndex,
               row: currentCell.rowIndex,
             },
-            content: currentCell.values?.[0]?.[0]?.toString() || '',
+            content: currentCell.values?.[0]?.[0]?.toString() ?? '',
           };
-          console.debug('[OfficeHelper](retrieveCurrentCellData) currentCellData: ', {
-            address: {
-              column: currentCell.columnIndex,
-              row: currentCell.rowIndex,
-            },
-            content: currentCell.values?.[0]?.[0]?.toString() || '',
-          });
+          console.debug(
+            '[OfficeHelper](retrieveCurrentCellData)',
+            'currentCellData: ',
+            currentCellData,
+          );
           resolve(currentCellData);
         } catch (error) {
-          console.warn('[OfficeHelper](retrieveCurrentCellData) Error during "Excel.run":', error);
+          console.warn(
+            '[OfficeHelper](retrieveCurrentCellData)',
+            'Error during "Excel.run":',
+            error,
+          );
           reject(error instanceof Error ? error : new Error(String(error)));
         }
       }).catch((error) => {
         console.error(
-          '[OfficeHelper](retrieveCurrentCellData) Uncaught error during "Excel.run":',
+          '[OfficeHelper](retrieveCurrentCellData)',
+          'Uncaught error during "Excel.run":',
           error,
         );
         reject(error instanceof Error ? error : new Error(String(error)));
@@ -111,7 +116,7 @@ export class OfficeHelper {
 
   async retrieveCurrentFileName(): Promise<string> {
     if (!this._isAvailable) {
-      throw new Error('[OfficeHelper] retrieveCurrentFileName is not available');
+      throw new Error('[OfficeHelper](retrieveCurrentFileName) Instance is not available');
     }
 
     return new Promise((resolve, reject) => {
@@ -121,16 +126,21 @@ export class OfficeHelper {
           workbook.load(['name']);
           await context.sync();
 
-          const fileName = workbook.name || '';
-          console.debug('[OfficeHelper](retrieveCurrentFileName) fileName:', fileName);
+          const fileName = workbook.name;
+          console.debug('[OfficeHelper](retrieveCurrentFileName)', 'FileName:', fileName);
           resolve(fileName);
         } catch (error) {
-          console.warn('[OfficeHelper](retrieveCurrentFileName) Error during "Excel.run":', error);
+          console.warn(
+            '[OfficeHelper](retrieveCurrentFileName)',
+            'Error during "Excel.run":',
+            error,
+          );
           reject(error instanceof Error ? error : new Error(String(error)));
         }
       }).catch((error) => {
         console.error(
-          '[OfficeHelper](retrieveCurrentFileName) Uncaught error during "Excel.run":',
+          '[OfficeHelper](retrieveCurrentFileName)',
+          'Uncaught error during "Excel.run":',
           error,
         );
         reject(error instanceof Error ? error : new Error(String(error)));
@@ -140,7 +150,7 @@ export class OfficeHelper {
 
   async retrieveCurrentSheetName(): Promise<string> {
     if (!this._isAvailable) {
-      throw new Error('[OfficeHelper] retrieveCurrentSheetName is not available');
+      throw new Error('[OfficeHelper](retrieveCurrentSheetName) Instance is not available');
     }
 
     return new Promise((resolve, reject) => {
@@ -150,16 +160,21 @@ export class OfficeHelper {
           activeWorksheet.load(['name']);
           await context.sync();
 
-          const sheetName = activeWorksheet.name || '';
-          console.debug('[OfficeHelper](retrieveCurrentSheetName) sheetName:', sheetName);
+          const sheetName = activeWorksheet.name;
+          console.debug('[OfficeHelper](retrieveCurrentSheetName)', 'sheetName:', sheetName);
           resolve(sheetName);
         } catch (error) {
-          console.warn('[OfficeHelper](retrieveCurrentSheetName) Error during "Excel.run":', error);
+          console.warn(
+            '[OfficeHelper](retrieveCurrentSheetName)',
+            'Error during "Excel.run":',
+            error,
+          );
           reject(error instanceof Error ? error : new Error(String(error)));
         }
       }).catch((error) => {
         console.error(
-          '[OfficeHelper](retrieveCurrentSheetName) Uncaught error during "Excel.run":',
+          '[OfficeHelper](retrieveCurrentSheetName)',
+          'Uncaught error during "Excel.run":',
           error,
         );
         reject(error instanceof Error ? error : new Error(String(error)));
@@ -176,7 +191,7 @@ export class OfficeHelper {
 
   async retrieveRangesRaw(address: string, ignoreEmpty = false): Promise<CellData[]> {
     if (!this._isAvailable) {
-      throw new Error('[OfficeHelper] RetrieveRangesRaw is not available');
+      throw new Error('[OfficeHelper](RetrieveRangesRaw) Instance is not available');
     }
 
     return new Promise((resolve, reject) => {
@@ -203,15 +218,23 @@ export class OfficeHelper {
             })
             .flat(2);
 
-          console.log(`[OfficeHelper] Retrieved ranges for ${address}:`, result);
+          console.debug(
+            '[OfficeHelper](RetrieveRangesRaw)',
+            `Retrieved ranges for "${address}":`,
+            result,
+          );
 
           resolve(ignoreEmpty ? result.filter((cellData) => cellData.content.length) : result);
         } catch (error) {
-          console.warn('[OfficeHelper] Error in retrieveRanges:', error);
+          console.warn('[OfficeHelper](RetrieveRangesRaw)', 'Error during "Excel.run":', error);
           reject(error instanceof Error ? error : new Error(String(error)));
         }
       }).catch((error) => {
-        console.error('[OfficeHelper] Excel.run error:', error);
+        console.error(
+          '[OfficeHelper](RetrieveRangesRaw)',
+          'Uncaught error during "Excel.run":',
+          error,
+        );
         reject(error instanceof Error ? error : new Error(String(error)));
       });
     });
@@ -238,57 +261,49 @@ export class OfficeHelper {
     );
   }
 
-  async getFileId(): Promise<string> {
+  async retrieveFileId(): Promise<string> {
     if (!this._isAvailable) {
       return '';
     }
 
-    try {
-      return new Promise((resolve) => {
-        Excel.run(async (context) => {
+    return new Promise((resolve, reject) => {
+      Excel.run(async (context) => {
+        try {
+          const customProperties = context.workbook.properties.custom;
+          customProperties.load();
+          await context.sync();
+
+          let fileId: string;
           try {
-            const customProperties = context.workbook.properties.custom;
-            customProperties.load();
+            const existingId = customProperties.getItem(PROPERTY_FILE_ID_KEY);
+            existingId.load('value');
             await context.sync();
-
-            let fileId: string;
-            try {
-              const existingId = customProperties.getItem('ComwareOmniFileId');
-              existingId.load('value');
-              await context.sync();
-              fileId = existingId.value;
-            } catch {
-              fileId = uid();
-              try {
-                customProperties.add('ComwareOmniFileId', fileId);
-                await context.sync();
-                console.info('[OfficeHelper] Created and stored new file ID:', fileId);
-              } catch (setError) {
-                console.warn(
-                  '[OfficeHelper] Cannot set custom property, using generated ID:',
-                  setError,
-                );
-                // 如果无法设置自定义属性，仍然返回生成的ID
-              }
-            }
-
-            resolve(fileId);
-          } catch (error) {
-            console.error('[OfficeHelper] Error getting stable file ID:', error);
-            // 如果以上方法都失败，生成一个基于当前时间的临时标识符
-            const fallbackId = `temp-${Date.now()}-${Math.random().toString(36).substring(2)}`;
-            console.warn('[OfficeHelper] Using fallback temporary ID:', fallbackId);
-            resolve(fallbackId);
+            fileId = existingId.value;
+          } catch {
+            fileId = uid();
+            customProperties.add(PROPERTY_FILE_ID_KEY, fileId);
+            await context.sync();
+            console.info(
+              '[OfficeHelper](retrieveFileId)',
+              'Created and stored new file ID:',
+              fileId,
+            );
           }
-        }).catch((error) => {
-          console.error('[OfficeHelper] Excel.run error in getCurrentFileId:', error);
-          resolve('');
-        });
+
+          resolve(fileId);
+        } catch (error) {
+          console.error('[OfficeHelper](retrieveFileId)', 'Error during "Excel.run":', error);
+          reject(error instanceof Error ? error : new Error(String(error)));
+        }
+      }).catch((error) => {
+        console.error(
+          '[OfficeHelper](retrieveFileId)',
+          'Uncaught error during "Excel.run":',
+          error,
+        );
+        resolve('');
       });
-    } catch (error) {
-      console.error('[OfficeHelper] Error in getCurrentFileId:', error);
-      return '';
-    }
+    });
   }
 
   private _associateActions() {
@@ -315,14 +330,22 @@ export class OfficeHelper {
 
         context.workbook.worksheets.items.forEach((worksheet) => {
           worksheet.onChanged.add(async (event) => {
-            console.debug(`[OfficeHelper] Sheet "${worksheet.name}" changed:`, { eventArgs: event });
+            console.debug(
+              '[OfficeHelper](_registryEvents)',
+              `Sheet "${worksheet.name}" event "onChanged":`,
+              event,
+            );
             for (const handler of this._onSheetChangedHandlerMap.values()) {
               await handler(event, worksheet, context);
             }
             await context.sync();
           });
           worksheet.onSelectionChanged.add(async (event) => {
-            console.debug(`[OfficeHelper] Sheet "${worksheet.name}" selection changed:`, event);
+            console.debug(
+              '[OfficeHelper](_registryEvents)',
+              `Sheet "${worksheet.name}" event "onSelectionChanged":`,
+              event,
+            );
             for (const handler of this._onSheetSelectionChangedHandlerMap.values()) {
               await handler(event, worksheet, context);
             }

@@ -34,7 +34,7 @@ const { apiToken, model, serviceUrl } = storeToRefs(useSettingsStore());
 const fileId = ref<string>();
 
 onMounted(async () => {
-  fileId.value = await officeHelper.getFileId();
+  fileId.value = await officeHelper.retrieveFileId();
 });
 </script>
 

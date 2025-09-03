@@ -18,7 +18,7 @@ export class ContextManager {
       }
       case CompletionStrategy.testCase: {
         if (currentCellAddress.column <= TEST_CASE_CONFIGS.v1.dataRange.begin.column) {
-          console.info('Editing indexing columns');
+          console.debug('[ContextManager](getRelatedCellDataList)', 'Editing indexing columns');
           result = await officeHelper.retrieveRanges(
             TEST_CASE_CONFIGS.v1.indexingColumns
               .filter(
@@ -40,7 +40,7 @@ export class ContextManager {
           currentCellAddress.column >= TEST_CASE_CONFIGS.v1.dataRange.begin.column &&
           currentCellAddress.column <= TEST_CASE_CONFIGS.v1.dataRange.end.column
         ) {
-          console.info('Editing data columns');
+          console.debug('[ContextManager](getRelatedCellDataList)', 'Editing data columns');
           result = await officeHelper.retrieveRanges(
             [
               {
@@ -57,7 +57,7 @@ export class ContextManager {
             true,
           );
         } else {
-          console.info('Editing other columns');
+          console.debug('[ContextManager](getRelatedCellDataList)', 'Editing other columns');
           result = await officeHelper.retrieveRangeByRectCenterAndAxes(
             currentCellAddress,
             3,

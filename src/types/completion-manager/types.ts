@@ -98,7 +98,10 @@ export class PromptElements {
   }
 
   get cacheKey() {
-    return this._contentContext.cells.current.content.trimEnd();
+    return (
+      `(${this._contentContext.cells.current.address.column},${this._contentContext.cells.current.address.row})` +
+      this._contentContext.cells.current.content.trimEnd()
+    );
   }
 
   stringify() {

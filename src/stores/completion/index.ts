@@ -33,7 +33,7 @@ export const useCompletionStore = defineStore(
       const { strategy, feature } = await detectCompletionStrategyAndFeature();
       completionStrategy.value = strategy;
       completionStrategyFeature.value = feature;
-      fileId.value = await officeHelper.getFileId();
+      fileId.value = await officeHelper.retrieveFileId();
     };
 
     return {

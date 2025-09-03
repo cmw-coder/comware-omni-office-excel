@@ -18,7 +18,7 @@ const loading = ref(false);
 const generateData = ref('');
 const generateResult = ref<GenerateResult>();
 
-const insertCompletion = async () => {
+const applyCompletion = async () => {
   await officeHelper.setCellContent(generateData.value);
   if (currentStatisticId.value) {
     statisticManager.accept(currentStatisticId.value);
@@ -35,10 +35,11 @@ const triggerCompletion = async (address?: string) => {
     if (modifiedCellDataList.length > 1) {
       // TODO: Support multi-cell edit
       console.log('Multiple cells edited, ignore:', { modifiedCellDataList });
-      loading.value = false;
       statisticManager.abort(statisticId);
+      loading.value = false;
       return;
     }
+
     currentCellData = modifiedCellDataList[0];
   } else {
     currentCellData = await officeHelper.retrieveCurrentCellData();
@@ -48,21 +49,30 @@ const triggerCompletion = async (address?: string) => {
     generateData.value = i18n('labels.noNeedToComplete');
     generateResult.value = GenerateResult.Empty;
     statisticManager.abort(statisticId);
+    loading.value = false;
     return;
   }
 
+  const [fileName, sheetName, relatedCellDataList, staticCellDataList] = await Promise.all([
+    officeHelper.retrieveCurrentFileName(),
+    officeHelper.retrieveCurrentSheetName(),
+    contextManager.getRelatedCellDataList(currentCellData.address),
+    contextManager.getStaticCellDataList(),
+  ]);
   const context = {
-    fileName: await officeHelper.retrieveCurrentFileName(),
-    sheetName: await officeHelper.retrieveCurrentSheetName(),
+    fileName,
+    sheetName,
     cells: {
       current: currentCellData,
-      related: await contextManager.getRelatedCellDataList(currentCellData.address),
-      static: await contextManager.getStaticCellDataList(),
+      related: relatedCellDataList,
+      static: staticCellDataList,
     }
   };
   statisticManager.setContext(statisticId, context);
+
   const promptElements = new PromptElements(context);
   statisticManager.setElements(statisticId, promptElements);
+
   const { result, data } = await completionManager.generate(promptElements, !address);
   console.log({ result, data });
   switch (result) {
@@ -171,7 +181,7 @@ onUnmounted(() => {
         "
         :label="i18n('labels.insertCompletion')"
         no-caps
-        @click="insertCompletion"
+        @click="applyCompletion"
       />
     </q-card-section>
     <q-inner-loading :showing="loading">
