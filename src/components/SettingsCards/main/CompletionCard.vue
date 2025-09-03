@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { computed, onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
-import { contextManager } from 'boot/context';
 import { officeHelper } from 'boot/office';
 import { i18nSubPath } from 'src/utils/common';
+import { useCompletionStore } from 'stores/completion';
 import { useSettingsStore } from 'stores/settings';
-import { ContextMode } from 'src/types/context-manager/types';
+import { CompletionStrategy } from 'src/types/common';
 
 const models = [
   {
@@ -28,19 +28,11 @@ const models = [
 ];
 
 const i18n = i18nSubPath('components.SettingsCards.main.CompletionCard');
-const { apiToken, model, serviceUrl, staticRangesMap } = storeToRefs(useSettingsStore());
+const { updateStaticRangeAddress } = useCompletionStore();
+const { completionStrategy, staticRangeAddress } = storeToRefs(useCompletionStore());
+const { apiToken, model, serviceUrl } = storeToRefs(useSettingsStore());
 
 const fileId = ref<string>();
-
-const isGenericMode = computed(() => contextManager.contextMode === ContextMode.generic);
-const staticRanges = computed({
-  get: () => (fileId.value ? (staticRangesMap.value[fileId.value] ?? '') : ''),
-  set: (val: string | undefined) => {
-    if (fileId.value) {
-      staticRangesMap.value[fileId.value] = val ?? '';
-    }
-  },
-});
 
 onMounted(async () => {
   fileId.value = await officeHelper.getFileId();
@@ -84,7 +76,7 @@ onMounted(async () => {
           />
         </q-item-section>
       </q-item>
-      <q-item v-if="isGenericMode" tag="label" v-ripple>
+      <q-item tag="label" v-ripple>
         <q-item-section>
           <q-item-label>
             {{ i18n('labels.staticRanges') }}
@@ -94,9 +86,11 @@ onMounted(async () => {
           <q-input
             clearable
             dense
+            :disable="completionStrategy === CompletionStrategy.generic"
             input-class="text-right"
             name="staticRanges"
-            v-model="staticRanges"
+            :model-value="staticRangeAddress"
+            @update:model-value="updateStaticRangeAddress($event)"
           />
         </q-item-section>
       </q-item>

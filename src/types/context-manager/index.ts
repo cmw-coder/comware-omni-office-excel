@@ -1,52 +1,24 @@
 import { officeHelper } from 'boot/office';
 import type { CellAddress, CellData } from 'src/types/common';
-import { TEST_CASE_CONFIGS } from 'src/types/context-manager/constants';
+import { CompletionStrategy } from 'src/types/common';
 import { columnStringToIndex } from 'src/utils/excel';
-import { useSettingsStore } from 'stores/settings';
+import { useCompletionStore } from 'stores/completion';
 
-import { ContextMode } from './types';
+import { TEST_CASE_CONFIGS } from './constants';
 
 export class ContextManager {
-  private _contextMode = ContextMode.generic;
-  private _staticRangeAddress = '';
-
-  get contextMode(): ContextMode {
-    return this._contextMode;
-  }
-
-  set contextMode(mode: ContextMode) {
-    this._contextMode = mode;
-    switch (this._contextMode) {
-      case ContextMode.generic: {
-        const settingsStore = useSettingsStore();
-        officeHelper
-          .getFileId()
-          .then(
-            (fileId) => (this._staticRangeAddress = settingsStore.staticRangesMap[fileId] ?? ''),
-          )
-          .catch((error) => {
-            console.error(error);
-            this._staticRangeAddress = '';
-          });
-        break;
-      }
-      case ContextMode.testCase: {
-        this._staticRangeAddress = 'A1:S1';
-        break;
-      }
-    }
-  }
-
   async getRelatedCellDataList(currentCellAddress: CellAddress): Promise<CellData[]> {
+    const completionStore = useCompletionStore();
+
     let result: CellData[];
-    switch (this._contextMode) {
-      case ContextMode.generic: {
+    switch (completionStore.completionStrategy) {
+      case CompletionStrategy.generic: {
         result = await officeHelper.retrieveRangeByRectCenterAndAxes(currentCellAddress, 3, 3);
         break;
       }
-      case ContextMode.testCase: {
+      case CompletionStrategy.testCase: {
         if (currentCellAddress.column <= TEST_CASE_CONFIGS.v1.dataRange.begin.column) {
-          console.info('Editing indexing columns')
+          console.info('Editing indexing columns');
           result = await officeHelper.retrieveRanges(
             TEST_CASE_CONFIGS.v1.indexingColumns
               .filter(
@@ -68,7 +40,7 @@ export class ContextManager {
           currentCellAddress.column >= TEST_CASE_CONFIGS.v1.dataRange.begin.column &&
           currentCellAddress.column <= TEST_CASE_CONFIGS.v1.dataRange.end.column
         ) {
-          console.info('Editing data columns')
+          console.info('Editing data columns');
           result = await officeHelper.retrieveRanges(
             [
               {
@@ -85,7 +57,7 @@ export class ContextManager {
             true,
           );
         } else {
-          console.info('Editing other columns')
+          console.info('Editing other columns');
           result = await officeHelper.retrieveRangeByRectCenterAndAxes(
             currentCellAddress,
             3,
@@ -106,6 +78,12 @@ export class ContextManager {
   }
 
   async getStaticCellDataList(): Promise<CellData[]> {
-    return await officeHelper.retrieveRangesRaw(this._staticRangeAddress);
+    const completionStore = useCompletionStore();
+
+    if (!completionStore.staticRangeAddress?.length) {
+      return [];
+    }
+
+    return await officeHelper.retrieveRangesRaw(completionStore.staticRangeAddress);
   }
 }

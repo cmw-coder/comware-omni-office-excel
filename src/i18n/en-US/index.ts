@@ -30,18 +30,18 @@ export default {
       },
       main: {
         AboutCard: {
+          completionStrategies: {
+            general: 'General',
+            testCase: 'Test Case',
+          },
           labels: {
             title: 'About',
             environment: 'Environment',
-            mode: 'Mode',
+            completionStrategy: 'Completion Strategy',
             serviceUrl: 'Service URL',
             localTest: 'Local Test',
             version: 'Version',
             developerOptions: 'Developer Options',
-          },
-          modes: {
-            general: 'General',
-            testCase: 'Test Case',
           },
           notifications: {
             copySuccess: 'Office info copied to clipboard',

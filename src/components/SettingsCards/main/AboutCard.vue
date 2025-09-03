@@ -4,15 +4,16 @@ import { copyToClipboard, useQuasar } from 'quasar';
 import { ref } from 'vue';
 
 import PackageJson from 'app/package.json';
-import { contextManager } from 'boot/context';
 import { officeHelper } from 'boot/office';
 import { i18nSubPath } from 'src/utils/common';
+import { useCompletionStore } from 'stores/completion';
 import { useSettingsStore } from 'stores/settings';
 
 const emit = defineEmits<{
   push: [path: string];
 }>();
 
+const { completionStrategy } = storeToRefs(useCompletionStore());
 const { serviceUrl, developerMode } = storeToRefs(useSettingsStore());
 const { notify } = useQuasar();
 
@@ -101,11 +102,11 @@ const tryEnableDeveloperMode = () => {
       <q-item clickable v-ripple>
         <q-item-section>
           <q-item-label>
-            {{ i18n('labels.mode') }}
+            {{ i18n('labels.completionStrategy') }}
           </q-item-label>
         </q-item-section>
         <q-item-section side>
-          {{ i18n(`modes.${contextManager.contextMode}`) }}
+          {{ i18n(`completionStrategies.${completionStrategy}`) }}
         </q-item-section>
       </q-item>
       <q-item tag="label" v-ripple>

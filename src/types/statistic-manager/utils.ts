@@ -36,7 +36,7 @@ const _pseudoReportSku = async (data: ReportSkuDto[]) => {
       )
       .join('\n'),
   );
-  await sleep(300 + Math.random() * 700);
+  await sleep(200 + Math.random() * 300);
   return true;
 };
 

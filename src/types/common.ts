@@ -20,5 +20,15 @@ export interface ContentContext {
     current: CellData;
     related: CellData[];
     static: CellData[];
-  }
+  };
+}
+
+export enum CompletionStrategy {
+  generic = 'generic',
+  testCase = 'testCase',
+}
+
+export enum CompletionStrategyVersion {
+  v1 = 'v1',
+  v2 = 'v2',
 }

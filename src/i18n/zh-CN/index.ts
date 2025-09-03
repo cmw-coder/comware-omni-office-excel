@@ -30,18 +30,18 @@ export default {
       },
       main: {
         AboutCard: {
+          completionStrategies: {
+            general: '通用',
+            testCase: '测试用例',
+          },
           labels: {
             title: '关于',
             environment: '环境',
-            mode: '模式',
+            completionStrategy: '补全策略',
             serviceUrl: '服务 URL',
             localTest: '本地测试',
             version: '版本',
             developerOptions: '开发者选项',
-          },
-          modes: {
-            general: '通用',
-            testCase: '测试用例',
           },
           notifications: {
             copySuccess: 'Office 信息已复制到剪贴板',

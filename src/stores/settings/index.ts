@@ -1,6 +1,6 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { Dark } from 'quasar';
-import { computed, reactive, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { DARK_MODES, DEFAULT_SERVER_URL_MAP } from 'stores/settings/constants';
@@ -18,7 +18,6 @@ export const useSettingsStore = defineStore(
     const locale = ref<string>(i18nLocale.value);
     const model = ref<string>('google/gemini-2.5-flash');
     const serviceUrl = ref<string>('');
-    const staticRangesMap = reactive<Record<string, string>>({});
     const username = ref<string>('');
 
     const themeProps = computed(() => {
@@ -66,7 +65,6 @@ export const useSettingsStore = defineStore(
       locale,
       model,
       serviceUrl,
-      staticRangesMap,
       username,
       themeProps,
       applyLocale,
