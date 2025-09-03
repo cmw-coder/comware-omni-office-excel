@@ -2,9 +2,10 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 
 import { completionManager } from 'boot/completion';
+import { contextManager } from 'boot/context';
 import { officeHelper } from 'boot/office';
 import { statisticManager } from 'boot/statistic';
-import type { ContentContext } from 'src/types/common';
+import type { CellData } from 'src/types/common';
 import { GenerateResult, PromptElements } from 'src/types/completion-manager/types';
 import { i18nSubPath } from 'src/utils/common';
 
@@ -25,19 +26,40 @@ const insertCompletion = async () => {
   }
 };
 
-const manualCompletion = async () => {
+const triggerCompletion = async (address?: string) => {
   loading.value = true;
   const statisticId = statisticManager.begin('');
-  const context = await officeHelper.retrieveContext();
-  statisticManager.setContext(statisticId, context);
-  await triggerCompletion(statisticId, await officeHelper.retrieveContext(), true);
-  loading.value = false;
-};
+  let currentCellData: CellData | undefined;
+  if (address) {
+    const modifiedCellDataList = await officeHelper.retrieveRangesRaw(address);
+    if (modifiedCellDataList.length > 0) {
+      // TODO: Support multi-cell edit
+      console.log('Multiple cells edited, ignore:', { modifiedCellDataList });
+      loading.value = false;
+      statisticManager.abort(statisticId);
+      return;
+    }
+    currentCellData = modifiedCellDataList[0];
+  } else {
+    currentCellData = await officeHelper.retrieveCurrentCellData();
+  }
 
-const triggerCompletion = async (statisticId: string, context: ContentContext, noCache = false) => {
+  if (!currentCellData) {
+    generateData.value = i18n('labels.noNeedToComplete');
+    generateResult.value = GenerateResult.Empty;
+    statisticManager.abort(statisticId);
+    return;
+  }
+
+  const context = {
+    current: currentCellData,
+    related: await contextManager.getRelatedCellDataList(currentCellData.address),
+    static: await contextManager.getStaticCellDataList(),
+  };
+  statisticManager.setContext(statisticId, context);
   const promptElements = new PromptElements(context);
   statisticManager.setElements(statisticId, promptElements);
-  const { result, data } = await completionManager.generate(promptElements, noCache);
+  const { result, data } = await completionManager.generate(promptElements, !address);
   console.log({ result, data });
   switch (result) {
     case GenerateResult.Cancel: {
@@ -78,49 +100,32 @@ const triggerCompletion = async (statisticId: string, context: ContentContext, n
       break;
     }
   }
+  loading.value = false;
 };
 
-// TODO: Add unmount event
 onMounted(() => {
-  officeHelper.addOnSheetChanged(templateId, async (context, worksheet, eventArgs) => {
+  officeHelper.registerOnSheetChanged(templateId, async ({ address, changeType }) => {
     if (
-      eventArgs.changeType === Excel.DataChangeType.cellDeleted ||
-      eventArgs.changeType === Excel.DataChangeType.cellInserted ||
-      eventArgs.changeType === Excel.DataChangeType.rangeEdited
+      changeType === Excel.DataChangeType.cellDeleted ||
+      changeType === Excel.DataChangeType.cellInserted ||
+      changeType === Excel.DataChangeType.rangeEdited
     ) {
-      const cellDataList = await officeHelper.retrieveRangesRaw(eventArgs.address);
-      console.log('Cell data changed:', cellDataList);
+      await triggerCompletion(address);
     }
-
-    // loading.value = true;
-    // const statisticId = statisticManager.begin('');
-    // const context = await officeHelper.retrieveContext();
-    // statisticManager.setContext(statisticId, context);
-    // await triggerCompletion(statisticId, context);
-    // loading.value = false;
   });
 
-  // officeHelper.registerOnChange(async (context) => {
-  //   loading.value = true;
-  //   const statisticId = statisticManager.begin('');
-  //   statisticManager.setContext(statisticId, context);
-  //   await triggerCompletion(statisticId, context);
-  //   loading.value = false;
-  // });
-  //
-  // officeHelper.onAcceptCandidate = () => {
-  //   if (
-  //     generateResult.value !== GenerateResult.Cancel &&
-  //     generateResult.value !== GenerateResult.Success
-  //   ) {
-  //     return;
-  //   }
-  //   insertCompletion().catch((error) => console.error(error));
-  // };
+  officeHelper.registerOnSheetSelectionChanged(templateId, async ({ address }) => {
+    await triggerCompletion(address);
+  });
 });
 
 onUnmounted(() => {
-  officeHelper.unregisterOnChange();
+  officeHelper.unregisterOnSheetChanged(templateId);
+  officeHelper.unregisterOnSheetSelectionChanged(templateId);
+  if (currentStatisticId.value) {
+    statisticManager.abort(currentStatisticId.value);
+    currentStatisticId.value = undefined;
+  }
   officeHelper.onAcceptCandidate = undefined;
 });
 </script>
@@ -145,7 +150,7 @@ onUnmounted(() => {
           icon="mdi-refresh"
           :label="i18n('labels.generate')"
           no-caps
-          @click="manualCompletion"
+          @click="triggerCompletion()"
         />
       </div>
       <div v-if="!generateData.length" class="text-grey text-italic">

@@ -1,15 +1,20 @@
 import { uid } from 'quasar';
 
 import { OFFICE_JS_SCRIPT_TAG } from 'src/constants/common';
-import type { ContentContext } from 'src/types/common';
+import type { CellAddress, CellData, RangeAddress } from 'src/types/common';
 
-import type { CellData, OfficeInfo, RangeAddress, SheetChangedHandler } from './types';
-import { columnIndexToString, columnStringToIndex, stringifyRangeAreaAddress } from './utils';
+import type {
+  OfficeInfo,
+  SheetChangedHandler,
+  SheetSelectionChangedHandler,
+} from './types';
+import { stringifyRangeAreaAddress } from './utils';
 
 export class OfficeHelper {
   private _initialized = false;
   private _officeInfo?: OfficeInfo;
   private _onSheetChangedHandlerMap = new Map<string, SheetChangedHandler>();
+  private _onSheetSelectionChangedHandlerMap = new Map<string, SheetSelectionChangedHandler>();
 
   onAcceptCandidate?: (() => void) | undefined;
   staticRanges?: string;
@@ -52,107 +57,71 @@ export class OfficeHelper {
     });
   }
 
-  addOnSheetChanged(id: string, callback: SheetChangedHandler) {
+  registerOnSheetChanged(id: string, callback: SheetChangedHandler) {
     this._onSheetChangedHandlerMap.set(id, callback);
   }
 
-  registerOnChange(callback: (contentContext: ContentContext) => Promise<void>) {
-    if (!this._isAvailable) {
-      return false;
-    }
-
-    Excel.run(async (context) => {
-      const worksheet = context.workbook.worksheets.getActiveWorksheet();
-
-      // 监听单元格内容变更事件
-      worksheet.onChanged.add(async (eventArgs) => {
-        if (
-          eventArgs.changeType === Excel.DataChangeType.cellDeleted ||
-          eventArgs.changeType === Excel.DataChangeType.cellInserted ||
-          eventArgs.changeType === Excel.DataChangeType.rangeEdited
-        ) {
-          await callback(await this.retrieveContext());
-        }
-      });
-      // 监听选择变更事件作为补充（当用户切换单元格时也可能表示编辑意图）
-      worksheet.onSelectionChanged.add(async () => {
-        await callback(await this.retrieveContext());
-      });
-
-      await context.sync();
-      console.log('[OfficeHelper] Added multiple event handlers for Excel cell operations.');
-    }).catch((error) => console.error(error));
+  unregisterOnSheetChanged(id: string) {
+    this._onSheetChangedHandlerMap.delete(id);
   }
 
-  // registerOnChange(callback: (contentContext: ContentContext) => Promise<void>) {
-  //   if (!this._isAvailable) {
-  //     return false;
-  //   }
-  //
-  //   if (Office.context.requirements.isSetSupported('ExcelApi', '1.7')) {
-  //     // 支持 ExcelApi 1.7，使用多种事件监听来捕获更多用户操作
-  //     Excel.run(async (context) => {
-  //       const worksheet = context.workbook.worksheets.getActiveWorksheet();
-  //
-  //       // 监听单元格内容变更事件
-  //       worksheet.onChanged.add(async (eventArgs) => {
-  //         if (
-  //           eventArgs.changeType === Excel.DataChangeType.cellDeleted ||
-  //           eventArgs.changeType === Excel.DataChangeType.cellInserted ||
-  //           eventArgs.changeType === Excel.DataChangeType.rangeEdited
-  //         ) {
-  //           await callback(await this.retrieveContext());
-  //         }
-  //       });
-  //       // 监听选择变更事件作为补充（当用户切换单元格时也可能表示编辑意图）
-  //       worksheet.onSelectionChanged.add(async () => {
-  //         await callback(await this.retrieveContext());
-  //       });
-  //
-  //       await context.sync();
-  //       console.log('[OfficeHelper] Added multiple event handlers for Excel cell operations.');
-  //     }).catch((error) => console.error(error));
-  //   } else {
-  //     console.warn(
-  //       '[OfficeHelper] ExcelApi 1.7 not supported, falling back to selection changed event',
-  //     );
-  //     Office.context.document.addHandlerAsync(Office.EventType.DocumentSelectionChanged, () => {
-  //       void (async () => {
-  //         await callback(await this.retrieveContext());
-  //       })();
-  //     });
-  //   }
-  //   return true;
-  // }
+  registerOnSheetSelectionChanged(id: string, callback: SheetSelectionChangedHandler) {
+    this._onSheetSelectionChangedHandlerMap.set(id, callback);
+  }
 
-  unregisterOnChange() {
-    if (!this._isAvailable) {
-      return false;
-    }
+  unregisterOnSheetSelectionChanged(id: string) {
+    this._onSheetSelectionChangedHandlerMap.delete(id);
+  }
 
-    if (Office.context.requirements.isSetSupported('ExcelApi', '1.7')) {
-      // ExcelApi 1.7 支持，移除 worksheet 事件处理器
+  async retrieveCurrentCellData(): Promise<CellData> {
+    return new Promise((resolve, reject) => {
       Excel.run(async (context) => {
-        // TODO: 目前 Office.js 没有提供直接移除特定事件处理器的方法
-        // const worksheet = context.workbook.worksheets.getActiveWorksheet();
-        // worksheet.onChanged.remove();
-        // worksheet.onSelectionChanged.remove();
-        await context.sync();
-        console.log('[OfficeHelper] Removed event handler for content changes in Excel cells.');
-      }).catch((error) => console.error(error));
-    } else {
-      console.warn(
-        '[OfficeHelper] ExcelApi 1.7 not supported, removing selection changed event handler',
-      );
-      Office.context.document.removeHandlerAsync(Office.EventType.DocumentSelectionChanged);
+        try {
+          const currentCell = context.workbook.getActiveCell();
+          currentCell.load(['address', 'columnIndex', 'rowIndex', 'values']);
+          await context.sync();
+
+          const currentCellData = {
+            address: {
+              column: currentCell.columnIndex,
+              row: currentCell.rowIndex,
+            },
+            content: currentCell.values?.[0]?.[0]?.toString() || '',
+          };
+          console.debug('[OfficeHelper](retrieveCurrentCellData) currentCellData: ', {
+            address: {
+              column: currentCell.columnIndex,
+              row: currentCell.rowIndex,
+            },
+            content: currentCell.values?.[0]?.[0]?.toString() || '',
+          });
+          resolve(currentCellData);
+        } catch (error) {
+          console.warn('[OfficeHelper](retrieveCurrentCellData) Error during "Excel.run":', error);
+          reject(error instanceof Error ? error : new Error(String(error)));
+        }
+      }).catch((error) => {
+        console.error(
+          '[OfficeHelper](retrieveCurrentCellData) Uncaught error during "Excel.run":',
+          error,
+        );
+        reject(error instanceof Error ? error : new Error(String(error)));
+      });
+    });
+  }
+
+  async retrieveRanges(
+    rangeAreasAddress: RangeAddress[],
+    ignoreEmpty = false,
+  ): Promise<CellData[]> {
+    return this.retrieveRangesRaw(stringifyRangeAreaAddress(rangeAreasAddress), ignoreEmpty);
+  }
+
+  async retrieveRangesRaw(address: string, ignoreEmpty = false): Promise<CellData[]> {
+    if (!this._isAvailable) {
+      throw new Error('[OfficeHelper] RetrieveRangesRaw is not available');
     }
-  }
 
-  async retrieveRanges(rangeAreasAddress: RangeAddress[]): Promise<CellData[]> {
-    return this.retrieveRangesRaw(stringifyRangeAreaAddress(rangeAreasAddress));
-  }
-
-  async retrieveRangesRaw(address: string): Promise<CellData[]> {
     return new Promise((resolve, reject) => {
       Excel.run(async (context) => {
         try {
@@ -171,15 +140,15 @@ export class OfficeHelper {
                     column: startCol + cellIndex,
                     row: startRow + rowIndex,
                   },
-                  content: cell?.toString() || '',
+                  content: cell?.toString() ?? '',
                 })),
               );
             })
             .flat(2);
 
-          console.log('[OfficeHelper] Retrieved ranges:', result);
+          console.log(`[OfficeHelper] Retrieved ranges for ${address}:`, result);
 
-          resolve(result);
+          resolve(ignoreEmpty ? result.filter((cellData) => cellData.content.length) : result);
         } catch (error) {
           console.warn('[OfficeHelper] Error in retrieveRanges:', error);
           reject(error instanceof Error ? error : new Error(String(error)));
@@ -191,132 +160,25 @@ export class OfficeHelper {
     });
   }
 
-  async retrieveContext(): Promise<ContentContext> {
-    return new Promise((resolve, reject) => {
-      Excel.run(async (context) => {
-        try {
-          const currentSheet = context.workbook.worksheets.getActiveWorksheet();
-          const activeCell = context.workbook.getActiveCell();
-
-          // 加载当前激活单元格的地址和内容
-          activeCell.load(['address', 'columnIndex', 'rowIndex', 'values']);
-
-          // 获取静态范围（仅当staticRanges不为空时）
-          let usedRange;
-          if (this.staticRanges) {
-            usedRange = currentSheet.getRanges(this.staticRanges);
-            usedRange.load(['address', 'values', 'areas']);
-          }
-
-          await context.sync();
-
-          // 解析当前单元格地址获取行列信息
-          console.log(`Active Cell: (${activeCell.columnIndex}, ${activeCell.rowIndex})`);
-          const currentAddress = activeCell.address;
-          const match = currentAddress.match(/([A-Z]+)(\d+)/);
-          if (!match || !match[1] || !match[2]) {
-            throw new Error('Invalid cell address format');
-          }
-
-          const currentCol = columnStringToIndex(match[1]);
-          const currentRow = parseInt(match[2]);
-
-          // 获取周围距离小于2的单元格内容
-          const nearbyAddresses: string[] = [];
-          for (let dx = -2; dx <= 2; dx++) {
-            for (let dy = -2; dy <= 2; dy++) {
-              if (dx === 0 && dy === 0) continue; // 排除当前单元格
-              const newRow = currentRow + dy;
-              const newCol = currentCol + dx;
-
-              if (newRow > 0 && newCol > 0) {
-                const newAddress = columnIndexToString(newCol) + newRow;
-                nearbyAddresses.push(newAddress);
-              }
-            }
-          }
-          const nearbyCells = nearbyAddresses.map((addr) => {
-            const cell = currentSheet.getRange(addr);
-            cell.load(['address', 'values']);
-            return cell;
-          });
-
-          await context.sync();
-
-          // 构建返回结果
-          const result: ContentContext = {
-            current: {
-              address: activeCell.address,
-              content: activeCell.values?.[0]?.[0]?.toString() || '',
-            },
-            relative: [],
-            static: [],
-          };
-
-          // 填充相对单元格数据
-          nearbyCells.forEach((cell) => {
-            const cellAddress = cell.address;
-            const cellMatch = cellAddress.match(/([A-Z]+)(\d+)/);
-            if (cellMatch && cellMatch[1] && cellMatch[2]) {
-              const cellCol = columnStringToIndex(cellMatch[1]);
-              const cellRow = parseInt(cellMatch[2]);
-
-              result.relative.push({
-                address: cellAddress,
-                dx: cellCol - currentCol,
-                dy: cellRow - currentRow,
-                content: cell.values?.[0]?.[0]?.toString() || '',
-              });
-            }
-          });
-
-          // 填充静态范围数据
-          if (usedRange) {
-            usedRange.areas.load(['address', 'values']);
-            await context.sync();
-
-            const staticRangesArray = usedRange.areas.items;
-            staticRangesArray.forEach((range) => {
-              const rowCount = range.values?.length || 0;
-              const colCount = range.values?.[0]?.length || 0;
-
-              for (let row = 0; row < rowCount; row++) {
-                for (let col = 0; col < colCount; col++) {
-                  const cellValue = range.values?.[row]?.[col];
-                  if (cellValue !== null && cellValue !== undefined) {
-                    // 计算实际的单元格地址
-                    const rangeAddress = range.address;
-                    const rangeMatch = rangeAddress.match(/([A-Z]+)(\d+)/);
-                    if (rangeMatch && rangeMatch[1] && rangeMatch[2]) {
-                      const startCol = columnStringToIndex(rangeMatch[1]);
-                      const startRow = parseInt(rangeMatch[2]);
-                      const actualCol = startCol + col;
-                      const actualRow = startRow + row;
-                      const actualAddress = columnIndexToString(actualCol) + actualRow;
-
-                      result.static.push({
-                        address: actualAddress,
-                        content: cellValue.toString(),
-                      });
-                    }
-                  }
-                }
-              }
-            });
-          }
-
-          console.log('[OfficeHelper] Retrieved context:', result);
-
-          resolve(result);
-        } catch (error) {
-          console.warn('[OfficeHelper] Error in retrieveContext:', error);
-          reject(error instanceof Error ? error : new Error(String(error)));
-        }
-      }).catch((error) => {
-        console.warn('[OfficeHelper] Excel.run error:', error);
-        reject(error instanceof Error ? error : new Error(String(error)));
-      });
-    });
+  async retrieveRangeByRectCenterAndAxes(
+    centerCellAddress: CellAddress,
+    a: number,
+    b: number,
+    ignoreEmpty = false,
+  ): Promise<CellData[]> {
+    a = Math.round(Math.abs(a));
+    b = Math.round(Math.abs(b));
+    const beginColumnIndex = Math.max(0, centerCellAddress.column - a);
+    const beginRowIndex = Math.max(0, centerCellAddress.row - b);
+    return await this.retrieveRanges(
+      [
+        {
+          begin: { column: beginColumnIndex, row: beginRowIndex },
+          end: { column: centerCellAddress.column + a, row: centerCellAddress.row + b },
+        },
+      ],
+      ignoreEmpty,
+    );
   }
 
   async getFileId(): Promise<string> {
@@ -394,13 +256,20 @@ export class OfficeHelper {
         context.workbook.worksheets.load();
         await context.sync();
 
-        context.workbook.worksheets.items.forEach((sheet) => {
-          sheet.onChanged.add(async (eventArgs) => {
-            console.log(`[OfficeHelper] Sheet "${sheet.name}" changed:`, { eventArgs });
-            // for (const handler of this._onSheetChangedHandlerMap.values()) {
-            //   await handler(context, sheet, eventArgs);
-            // }
-            await context.sync()
+        context.workbook.worksheets.items.forEach((worksheet) => {
+          worksheet.onChanged.add(async (event) => {
+            console.log(`[OfficeHelper] Sheet "${worksheet.name}" changed:`, { eventArgs: event });
+            for (const handler of this._onSheetChangedHandlerMap.values()) {
+              await handler(event, worksheet, context);
+            }
+            await context.sync();
+          });
+          worksheet.onSelectionChanged.add(async (event) => {
+            console.log(`[OfficeHelper] Sheet "${worksheet.name}" selection changed:`, event);
+            for (const handler of this._onSheetSelectionChangedHandlerMap.values()) {
+              await handler(event, worksheet, context);
+            }
+            await context.sync();
           });
         });
         await context.sync();

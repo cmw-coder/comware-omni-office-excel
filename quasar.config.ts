@@ -32,7 +32,7 @@ export default defineConfig((ctx) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ['axios', 'bus', 'completion', 'i18n', 'office', 'statistic'],
+    boot: ['axios', 'bus', 'completion', 'context', 'i18n', 'office', 'statistic'],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: ['app.scss'],
@@ -172,7 +172,7 @@ export default defineConfig((ctx) => {
       // iconSet: 'material-icons', // Quasar icon set
       // lang: 'en-US', // Quasar language pack
 
-      // For special cases outside of where the auto-import strategy can have an impact
+      // For special cases outside where the auto-import strategy can have an impact
       // (like functional components as one of the examples),
       // you can manually specify Quasar components/directives to be available everywhere:
       //
@@ -206,7 +206,7 @@ export default defineConfig((ctx) => {
       // (gets superseded if process.env.PORT is specified at runtime)
 
       middlewares: [
-        'render', // keep this as last one
+        'render', // keep this as the last one
       ],
 
       // extendPackageJson (json) {},

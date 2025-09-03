@@ -1,16 +1,20 @@
+export interface CellAddress {
+  column: number;
+  row: number;
+}
+
+export interface CellData {
+  address: CellAddress;
+  content: string;
+}
+
+export interface RangeAddress {
+  begin: CellAddress;
+  end?: CellAddress;
+}
+
 export interface ContentContext {
-  current: {
-    address: string;
-    content: string;
-  };
-  relative: {
-    address: string;
-    dx: number;
-    dy: number;
-    content: string;
-  }[];
-  static: {
-    address: string;
-    content: string;
-  }[];
+  current: CellData;
+  related: CellData[];
+  static: CellData[];
 }

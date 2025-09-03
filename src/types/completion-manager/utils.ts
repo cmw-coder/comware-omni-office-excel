@@ -60,26 +60,50 @@ export const generate = async (content: string, signal: AbortSignal) => {
           content:
             '之后，我将以JSON格式告诉你当前测试用例表格的相关数据，格式样例如下：\n' +
             '{\n' +
-            '  "current": {\n' +
-            '    "address": "A2", // 当前正在编辑的单元格位置\n' +
-            '    "content": "登录功能测试"\n' +
+            '  "current": { // 当前正在编辑的单元格数据\n' +
+            '    "address": { // 单元格列序号和行序号（从0开始）\n' +
+            '      "column": 14,\n' +
+            '      "row": 7,\n' +
+            '    },\n' +
+            '    "content": "验证登录功能"\n' +
             '  },\n' +
-            '  "relative": [ // 多个相对位置的单元格数据\n' +
+            '  "relative": [ // 多个与当前单元格相邻的单元格数据\n' +
             '    {\n' +
-            '      "address": "B2", // 单元格地址\n' +
-            '      "dx": 1, // 相对于当前单元格的列偏移量\n' +
-            '      "dy": 0, // 相对于当前单元格的行偏移量\n' +
+            '      "address": {\n' +
+            '        "column": 15,\n' +
+            '        "row": 7,\n' +
+            '      },\n' +
             '      "content": "输入正确的用户名和密码，点击登录按钮"\n' +
+            '    },\n' +
+            '    {\n' +
+            '      "address": {\n' +
+            '        "column": 16,\n' +
+            '        "row": 7,\n' +
+            '      },\n' +
+            '      "content": "用户成功登录，没有报错"\n' +
             '    }\n' +
             '  ],\n' +
-            '  "static": [ // 多个静态位置的单元格数据\n' +
+            '  "static": [ // 固定位置的单元格数据，一般为表格头信息\n' +
             '    {\n' +
-            '      "address": "A1", // 单元格地址\n' +
+            '      "address": {\n' +
+            '        "column": 14,\n' +
+            '        "row": 1,\n' +
+            '      },\n' +
             '      "content": "测试用例名称"\n' +
             '    },\n' +
             '    {\n' +
-            '      "address": "B1", // 单元格地址\n' +
+            '      "address": {\n' +
+            '        "column": 15,\n' +
+            '        "row": 1,\n' +
+            '      },\n' +
             '      "content": "测试步骤描述"\n' +
+            '    },\n' +
+            '    {\n' +
+            '      "address": {\n' +
+            '        "column": 16,\n' +
+            '        "row": 1,\n' +
+            '      },\n' +
+            '      "content": "测试步骤预期结果"\n' +
             '    }\n' +
             '  ]\n' +
             '}。以下是当前测试用例表格的相关数据：',
@@ -91,7 +115,7 @@ export const generate = async (content: string, signal: AbortSignal) => {
         {
           role: 'system',
           content:
-            '请你参考当前单元格和周围单元格以及固定单元格的内容，补全当前单元格的内容(current.content)，只需要给我补全的内容即可，不要返回其他多余文本。',
+            '请你参考当前测试用例表格的相关数据，补全当前单元格的内容(current.content)，只需要给我补全的内容即可，不要返回其他多余文本。',
         },
       ],
     },
