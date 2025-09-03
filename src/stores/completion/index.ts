@@ -1,43 +1,45 @@
 import { defineStore } from 'pinia';
-import { reactive, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 
 import { officeHelper } from 'boot/office';
 import { CompletionStrategy } from 'src/types/common';
 
-import { detectCompletionStrategy } from './utils';
+import type { CompletionStrategyFeature } from './types';
+import { detectCompletionStrategyAndFeature } from './utils';
 
 export const useCompletionStore = defineStore(
   'completion',
   () => {
     const completionStrategy = ref<CompletionStrategy>(CompletionStrategy.generic);
+    const completionStrategyFeature = ref<CompletionStrategyFeature>();
+    const fileId = ref<string>('');
     const staticRangesMap = reactive<Record<string, string>>({});
-    const staticRangeAddress = ref<string>();
+
+    const staticRangeAddress = computed({
+      get: () => {
+        if (completionStrategy.value === CompletionStrategy.generic) {
+          return staticRangesMap[fileId.value] ?? '';
+        }
+        return completionStrategyFeature.value?.staticRangeAddress ?? '';
+      },
+      set: (value: string) => {
+        if (completionStrategy.value === CompletionStrategy.generic) {
+          staticRangesMap[fileId.value] = value;
+        }
+      },
+    });
 
     const initCompletionStore = async () => {
-      completionStrategy.value = await detectCompletionStrategy();
-      switch (completionStrategy.value) {
-        case CompletionStrategy.generic: {
-          staticRangeAddress.value = staticRangesMap[await officeHelper.getFileId()];
-          break;
-        }
-        case CompletionStrategy.testCase: {
-          staticRangeAddress.value = 'A1:S1';
-          break;
-        }
-      }
+      const { strategy, feature } = await detectCompletionStrategyAndFeature();
+      completionStrategy.value = strategy;
+      completionStrategyFeature.value = feature;
+      fileId.value = await officeHelper.getFileId();
     };
 
-    const updateStaticRangeAddress = async (address: string | number | null) => {
-      if (completionStrategy.value === CompletionStrategy.generic) {
-        staticRangesMap[await officeHelper.getFileId()] = address?.toString() ?? '';
-        staticRangeAddress.value = address?.toString() ?? '';
-      }
-    };
     return {
       completionStrategy,
       staticRangeAddress,
       initCompletionStore,
-      updateStaticRangeAddress,
     };
   },
   {

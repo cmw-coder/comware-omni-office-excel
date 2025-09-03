@@ -8,8 +8,8 @@ export const COMPLETION_STRATEGY_DEFINITIONS: CompletionStrategyDefinition[] = [
     features: [
       {
         version: CompletionStrategyVersion.v1,
-        rangeAddress: 'A1:AV1',
-        cellDataList: [
+        detectRangeAddress: 'A1:AV1',
+        detectCellDataList: [
           {
             address: {
               column: 0,
@@ -347,7 +347,13 @@ export const COMPLETION_STRATEGY_DEFINITIONS: CompletionStrategyDefinition[] = [
             content: '作者',
           },
         ],
+        staticRangeAddress: 'A1:S1'
       },
     ],
   },
 ];
+
+export const GENERIC_COMPLETION_STRATEGY_DEFINITION: CompletionStrategyDefinition = {
+  strategy: CompletionStrategy.generic,
+  features: [],
+}

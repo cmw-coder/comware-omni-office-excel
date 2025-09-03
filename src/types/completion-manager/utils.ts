@@ -1,6 +1,5 @@
 import { rawModelApi } from 'boot/axios';
 
-import aw from 'assets/aw.json';
 import { useSettingsStore } from 'stores/settings';
 
 type ResponseUsage = {
@@ -51,9 +50,7 @@ export const generateRaw = async (content: string, signal: AbortSignal) => {
       messages: [
         {
           role: 'system',
-          content:
-            '你现在是一个测试专家，我需要你参考当前测试用例表格的数据，并回答我要求的内容。' +
-            `请首先将以下JSON格式的数据作为业务说明和相关命令介绍：\n${JSON.stringify(aw)}`,
+          content: '你现在是一个测试专家，我需要你参考当前测试用例表格的数据，并回答我要求的内容。',
         },
         {
           role: 'system',

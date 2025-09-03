@@ -57,6 +57,9 @@ export default {
             model: 'Model',
             staticRanges: 'Static Cells',
           },
+          tooltips: {
+            whyCannotEditStaticRanges: 'Static Cells can only be set when "Completion Strategy" is "General"',
+          }
         },
         GeneralCard: {
           labels: {

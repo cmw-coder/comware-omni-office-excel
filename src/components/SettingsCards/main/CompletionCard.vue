@@ -28,7 +28,6 @@ const models = [
 ];
 
 const i18n = i18nSubPath('components.SettingsCards.main.CompletionCard');
-const { updateStaticRangeAddress } = useCompletionStore();
 const { completionStrategy, staticRangeAddress } = storeToRefs(useCompletionStore());
 const { apiToken, model, serviceUrl } = storeToRefs(useSettingsStore());
 
@@ -84,14 +83,23 @@ onMounted(async () => {
         </q-item-section>
         <q-item-section side>
           <q-input
+            v-if="completionStrategy === CompletionStrategy.generic"
             clearable
             dense
-            :disable="completionStrategy === CompletionStrategy.generic"
             input-class="text-right"
             name="staticRanges"
-            :model-value="staticRangeAddress"
-            @update:model-value="updateStaticRangeAddress($event)"
+            v-model="staticRangeAddress"
           />
+          <div v-else class="row items-center q-gutter-x-sm">
+            <div>
+              {{ staticRangeAddress }}
+            </div>
+            <q-icon name="help_outline" size="sm">
+              <q-tooltip>
+                {{ i18n('tooltips.whyCannotEditStaticRanges') }}
+              </q-tooltip>
+            </q-icon>
+          </div>
         </q-item-section>
       </q-item>
     </q-list>

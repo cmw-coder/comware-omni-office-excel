@@ -2,24 +2,33 @@ import { officeHelper } from 'boot/office';
 import { CompletionStrategy } from 'src/types/common';
 
 import { COMPLETION_STRATEGY_DEFINITIONS } from './constants';
+import type { CompletionStrategyDefinition } from './types';
 
-export const detectCompletionStrategy = async (): Promise<CompletionStrategy> => {
+export const detectCompletionStrategyAndFeature = async (): Promise<{
+  strategy: CompletionStrategy;
+  feature?: CompletionStrategyDefinition['features'][number];
+}> => {
   for (const completionStrategyDefinition of COMPLETION_STRATEGY_DEFINITIONS) {
     for (const feature of completionStrategyDefinition.features) {
-      const currentCellDataList = await officeHelper.retrieveRangesRaw(feature.rangeAddress);
-      if (currentCellDataList.length === feature.cellDataList.length) {
+      const currentCellDataList = await officeHelper.retrieveRangesRaw(feature.detectRangeAddress);
+      if (currentCellDataList.length === feature.detectCellDataList.length) {
         let match = true;
-        for (let i = 0; i < feature.cellDataList.length; i++) {
-          if (currentCellDataList[i]?.content !== feature.cellDataList[i]?.content) {
+        for (let i = 0; i < feature.detectCellDataList.length; i++) {
+          if (currentCellDataList[i]?.content !== feature.detectCellDataList[i]?.content) {
             match = false;
             break;
           }
         }
         if (match) {
-          return completionStrategyDefinition.strategy;
+          return {
+            strategy: completionStrategyDefinition.strategy,
+            feature,
+          };
         }
       }
     }
   }
-  return CompletionStrategy.generic;
+  return {
+    strategy: CompletionStrategy.generic,
+  };
 };

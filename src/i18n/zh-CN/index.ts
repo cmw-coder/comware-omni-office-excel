@@ -57,6 +57,9 @@ export default {
             model: '模型',
             staticRanges: '静态单元格',
           },
+          tooltips: {
+            whyCannotEditStaticRanges: '静态单元格只能在“补全策略”为“通用”时手动设置',
+          },
         },
         GeneralCard: {
           labels: {
