@@ -391,16 +391,16 @@ export class OfficeHelper {
   private async _registryEvents() {
     return new Promise<void>((resolve, reject) => {
       Excel.run(async (context) => {
-        // 加载 worksheets 集合
         context.workbook.worksheets.load();
         await context.sync();
 
         context.workbook.worksheets.items.forEach((sheet) => {
           sheet.onChanged.add(async (eventArgs) => {
             console.log(`[OfficeHelper] Sheet "${sheet.name}" changed:`, { eventArgs });
-            for (const handler of this._onSheetChangedHandlerMap.values()) {
-              await handler(context, sheet, eventArgs);
-            }
+            // for (const handler of this._onSheetChangedHandlerMap.values()) {
+            //   await handler(context, sheet, eventArgs);
+            // }
+            await context.sync()
           });
         });
         await context.sync();
