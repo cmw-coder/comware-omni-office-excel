@@ -41,7 +41,7 @@ jobs:
       - name: Install Dependencies and Build
         run: |
           pnpm i
-          pnpm run build
+          BUILD_RELEASE=${{ startsWith(github.ref, 'refs/tags/pre') || startsWith(github.ref, 'refs/tags/v') }} pnpm run build
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:

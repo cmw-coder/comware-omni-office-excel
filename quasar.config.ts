@@ -134,6 +134,13 @@ export default defineConfig((ctx) => {
       },
       afterBuild: ({ quasarConf }) => {
         if (quasarConf.build?.distDir) {
+          writeFileSync(
+            `${quasarConf.build.distDir}/manifest.xml`,
+            readFileSync(MANIFEST_PATH, 'utf-8').replace(
+              'https://localhost:9000',
+              process.env.BUILD_RELEASE === 'true' ? 'https://' : 'https://',
+            ),
+          );
           copyFileSync(MANIFEST_PATH, `${quasarConf.build.distDir}/manifest.xml`);
 
           cpSync(
