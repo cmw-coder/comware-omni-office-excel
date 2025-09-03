@@ -14,7 +14,11 @@ export interface RangeAddress {
 }
 
 export interface ContentContext {
-  current: CellData;
-  related: CellData[];
-  static: CellData[];
+  fileName: string;
+  sheetName: string;
+  cells: {
+    current: CellData;
+    related: CellData[];
+    static: CellData[];
+  }
 }

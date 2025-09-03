@@ -1,22 +1,18 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
+import { onMounted } from 'vue';
 
 import { useSettingsStore } from 'stores/settings';
-import { onMounted } from 'vue';
-import { officeHelper } from 'boot/office';
 
 const { applyLocale, applyTheme, detectBaseUrl } = useSettingsStore();
-const { baseUrl, staticRangesMap } = storeToRefs(useSettingsStore());
+const { serviceUrl } = storeToRefs(useSettingsStore());
 
-onMounted(async () => {
+onMounted(() => {
   applyLocale();
   applyTheme();
-  if (!baseUrl.value.length) {
+  if (!serviceUrl.value.length) {
     detectBaseUrl().catch((e) => console.error(e));
   }
-
-  const fileId = await officeHelper.getFileId();
-  officeHelper.staticRanges = fileId ? (staticRangesMap.value[fileId] ?? '') : ''
 });
 </script>
 

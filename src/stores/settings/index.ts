@@ -13,11 +13,11 @@ export const useSettingsStore = defineStore(
     const { locale: i18nLocale } = useI18n();
 
     const apiToken = ref<string>('');
-    const baseUrl = ref<string>('');
     const darkMode = ref<Dark['mode']>(Dark.mode);
     const developerMode = ref(false);
     const locale = ref<string>(i18nLocale.value);
     const model = ref<string>('google/gemini-2.5-flash');
+    const serviceUrl = ref<string>('');
     const staticRangesMap = reactive<Record<string, string>>({});
     const username = ref<string>('');
 
@@ -49,7 +49,7 @@ export const useSettingsStore = defineStore(
       );
       const availableNetworkZone = results.find(({ accessible }) => accessible)?.zone;
       if (availableNetworkZone) {
-        baseUrl.value = DEFAULT_SERVER_URL_MAP[availableNetworkZone];
+        serviceUrl.value = DEFAULT_SERVER_URL_MAP[availableNetworkZone];
       }
     };
 
@@ -61,11 +61,11 @@ export const useSettingsStore = defineStore(
 
     return {
       apiToken,
-      baseUrl,
       darkMode,
       developerMode,
       locale,
       model,
+      serviceUrl,
       staticRangesMap,
       username,
       themeProps,

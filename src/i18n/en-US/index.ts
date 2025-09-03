@@ -32,9 +32,16 @@ export default {
         AboutCard: {
           labels: {
             title: 'About',
-            developerOptions: 'Developer Options',
             environment: 'Environment',
+            mode: 'Mode',
+            serviceUrl: 'Service URL',
+            localTest: 'Local Test',
             version: 'Version',
+            developerOptions: 'Developer Options',
+          },
+          modes: {
+            general: 'General',
+            testCase: 'Test Case',
           },
           notifications: {
             copySuccess: 'Office info copied to clipboard',
@@ -46,7 +53,6 @@ export default {
         CompletionCard: {
           labels: {
             title: 'Completion',
-            serviceUrl: 'Service URL',
             apiToken: 'API Token',
             model: 'Model',
             staticRanges: 'Static Cells',

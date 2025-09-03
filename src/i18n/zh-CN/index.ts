@@ -32,9 +32,16 @@ export default {
         AboutCard: {
           labels: {
             title: '关于',
-            developerOptions: '开发者选项',
             environment: '环境',
+            mode: '模式',
+            serviceUrl: '服务 URL',
+            localTest: '本地测试',
             version: '版本',
+            developerOptions: '开发者选项',
+          },
+          modes: {
+            general: '通用',
+            testCase: '测试用例',
           },
           notifications: {
             copySuccess: 'Office 信息已复制到剪贴板',
@@ -46,7 +53,6 @@ export default {
         CompletionCard: {
           labels: {
             title: '补全',
-            serviceUrl: '服务 URL',
             apiToken: 'API 令牌',
             model: '模型',
             staticRanges: '静态单元格',

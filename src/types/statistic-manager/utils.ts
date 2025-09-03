@@ -18,7 +18,7 @@ const _reportSku = async (data: ReportSkuDto[]) => {
         .join('\n'),
     );
     await axios.post('/kong/RdTestResourceStatistic/report/summary', data, {
-      baseURL: useSettingsStore().baseUrl,
+      baseURL: useSettingsStore().serviceUrl,
     });
     return true;
   } catch (e) {

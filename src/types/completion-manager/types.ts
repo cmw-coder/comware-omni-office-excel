@@ -93,11 +93,12 @@ export class PromptElements {
   private readonly _contentContext: ContentContext;
 
   constructor(context: ContentContext) {
+    console.info('PromptElements context:', context);
     this._contentContext = context;
   }
 
   get cacheKey() {
-    return this._contentContext.current.content.trimEnd();
+    return this._contentContext.cells.current.content.trimEnd();
   }
 
   stringify() {

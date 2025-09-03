@@ -17,7 +17,6 @@ export class OfficeHelper {
   private _onSheetSelectionChangedHandlerMap = new Map<string, SheetSelectionChangedHandler>();
 
   onAcceptCandidate?: (() => void) | undefined;
-  staticRanges?: string;
 
   async init() {
     if (this._initialized) {
@@ -31,7 +30,7 @@ export class OfficeHelper {
       this._associateActions();
       console.log('[OfficeHelper] Office.js is ready:', this._officeInfo);
     } else {
-      console.warn(
+      console.error(
         '[OfficeHelper] Office.js is not loaded.\n' +
           'Please make sure it is loaded before calling OfficeHelper.init()\n' +
           `By insert ${OFFICE_JS_SCRIPT_TAG} in your HTML head tag`,
@@ -110,6 +109,64 @@ export class OfficeHelper {
     });
   }
 
+  async retrieveCurrentFileName(): Promise<string> {
+    if (!this._isAvailable) {
+      throw new Error('[OfficeHelper] retrieveCurrentFileName is not available');
+    }
+
+    return new Promise((resolve, reject) => {
+      Excel.run(async (context) => {
+        try {
+          const workbook = context.workbook;
+          workbook.load(['name']);
+          await context.sync();
+
+          const fileName = workbook.name || '';
+          console.debug('[OfficeHelper](retrieveCurrentFileName) fileName:', fileName);
+          resolve(fileName);
+        } catch (error) {
+          console.warn('[OfficeHelper](retrieveCurrentFileName) Error during "Excel.run":', error);
+          reject(error instanceof Error ? error : new Error(String(error)));
+        }
+      }).catch((error) => {
+        console.error(
+          '[OfficeHelper](retrieveCurrentFileName) Uncaught error during "Excel.run":',
+          error,
+        );
+        reject(error instanceof Error ? error : new Error(String(error)));
+      });
+    });
+  }
+
+  async retrieveCurrentSheetName(): Promise<string> {
+    if (!this._isAvailable) {
+      throw new Error('[OfficeHelper] retrieveCurrentSheetName is not available');
+    }
+
+    return new Promise((resolve, reject) => {
+      Excel.run(async (context) => {
+        try {
+          const activeWorksheet = context.workbook.worksheets.getActiveWorksheet();
+          activeWorksheet.load(['name']);
+          await context.sync();
+
+          const sheetName = activeWorksheet.name || '';
+          console.debug('[OfficeHelper](retrieveCurrentSheetName) sheetName:', sheetName);
+          resolve(sheetName);
+        } catch (error) {
+          console.warn('[OfficeHelper](retrieveCurrentSheetName) Error during "Excel.run":', error);
+          reject(error instanceof Error ? error : new Error(String(error)));
+        }
+      }).catch((error) => {
+        console.error(
+          '[OfficeHelper](retrieveCurrentSheetName) Uncaught error during "Excel.run":',
+          error,
+        );
+        reject(error instanceof Error ? error : new Error(String(error)));
+      });
+    });
+  }
+
   async retrieveRanges(
     rangeAreasAddress: RangeAddress[],
     ignoreEmpty = false,
@@ -154,7 +211,7 @@ export class OfficeHelper {
           reject(error instanceof Error ? error : new Error(String(error)));
         }
       }).catch((error) => {
-        console.warn('[OfficeHelper] Excel.run error:', error);
+        console.error('[OfficeHelper] Excel.run error:', error);
         reject(error instanceof Error ? error : new Error(String(error)));
       });
     });
@@ -205,7 +262,7 @@ export class OfficeHelper {
               try {
                 customProperties.add('ComwareOmniFileId', fileId);
                 await context.sync();
-                console.log('[OfficeHelper] Created and stored new file ID:', fileId);
+                console.info('[OfficeHelper] Created and stored new file ID:', fileId);
               } catch (setError) {
                 console.warn(
                   '[OfficeHelper] Cannot set custom property, using generated ID:',
@@ -258,14 +315,14 @@ export class OfficeHelper {
 
         context.workbook.worksheets.items.forEach((worksheet) => {
           worksheet.onChanged.add(async (event) => {
-            console.log(`[OfficeHelper] Sheet "${worksheet.name}" changed:`, { eventArgs: event });
+            console.debug(`[OfficeHelper] Sheet "${worksheet.name}" changed:`, { eventArgs: event });
             for (const handler of this._onSheetChangedHandlerMap.values()) {
               await handler(event, worksheet, context);
             }
             await context.sync();
           });
           worksheet.onSelectionChanged.add(async (event) => {
-            console.log(`[OfficeHelper] Sheet "${worksheet.name}" selection changed:`, event);
+            console.debug(`[OfficeHelper] Sheet "${worksheet.name}" selection changed:`, event);
             for (const handler of this._onSheetSelectionChangedHandlerMap.values()) {
               await handler(event, worksheet, context);
             }

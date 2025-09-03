@@ -11,12 +11,12 @@ import { i18nSubPath } from 'src/utils/common';
 
 const templateId = 'components.DashboardCards.CompletionCard';
 
+const i18n = i18nSubPath(templateId);
+
 const currentStatisticId = ref<string>();
 const loading = ref(false);
 const generateData = ref('');
 const generateResult = ref<GenerateResult>();
-
-const i18n = i18nSubPath(templateId);
 
 const insertCompletion = async () => {
   await officeHelper.setCellContent(generateData.value);
@@ -32,7 +32,7 @@ const triggerCompletion = async (address?: string) => {
   let currentCellData: CellData | undefined;
   if (address) {
     const modifiedCellDataList = await officeHelper.retrieveRangesRaw(address);
-    if (modifiedCellDataList.length > 0) {
+    if (modifiedCellDataList.length > 1) {
       // TODO: Support multi-cell edit
       console.log('Multiple cells edited, ignore:', { modifiedCellDataList });
       loading.value = false;
@@ -52,9 +52,13 @@ const triggerCompletion = async (address?: string) => {
   }
 
   const context = {
-    current: currentCellData,
-    related: await contextManager.getRelatedCellDataList(currentCellData.address),
-    static: await contextManager.getStaticCellDataList(),
+    fileName: await officeHelper.retrieveCurrentFileName(),
+    sheetName: await officeHelper.retrieveCurrentSheetName(),
+    cells: {
+      current: currentCellData,
+      related: await contextManager.getRelatedCellDataList(currentCellData.address),
+      static: await contextManager.getStaticCellDataList(),
+    }
   };
   statisticManager.setContext(statisticId, context);
   const promptElements = new PromptElements(context);

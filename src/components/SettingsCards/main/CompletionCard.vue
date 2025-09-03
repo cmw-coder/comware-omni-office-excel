@@ -2,11 +2,11 @@
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref } from 'vue';
 
+import { contextManager } from 'boot/context';
+import { officeHelper } from 'boot/office';
 import { i18nSubPath } from 'src/utils/common';
 import { useSettingsStore } from 'stores/settings';
-import { officeHelper } from 'boot/office';
-
-const { apiToken, baseUrl, model, staticRangesMap } = storeToRefs(useSettingsStore());
+import { ContextMode } from 'src/types/context-manager/types';
 
 const models = [
   {
@@ -28,15 +28,16 @@ const models = [
 ];
 
 const i18n = i18nSubPath('components.SettingsCards.main.CompletionCard');
+const { apiToken, model, serviceUrl, staticRangesMap } = storeToRefs(useSettingsStore());
 
 const fileId = ref<string>();
 
+const isGenericMode = computed(() => contextManager.contextMode === ContextMode.generic);
 const staticRanges = computed({
   get: () => (fileId.value ? (staticRangesMap.value[fileId.value] ?? '') : ''),
   set: (val: string | undefined) => {
     if (fileId.value) {
       staticRangesMap.value[fileId.value] = val ?? '';
-      officeHelper.staticRanges = val ?? '';
     }
   },
 });
@@ -55,17 +56,7 @@ onMounted(async () => {
     </q-card-section>
     <q-separator />
     <q-list separator>
-      <q-item tag="label" v-ripple>
-        <q-item-section>
-          <q-item-label>
-            {{ i18n('labels.serviceUrl') }}
-          </q-item-label>
-        </q-item-section>
-        <q-item-section side>
-          <q-input dense input-class="text-right" name="apiToken" v-model="baseUrl" />
-        </q-item-section>
-      </q-item>
-      <q-item tag="label" v-ripple>
+      <q-item v-if="!serviceUrl?.length" tag="label" v-ripple>
         <q-item-section>
           <q-item-label>
             {{ i18n('labels.apiToken') }}
@@ -93,7 +84,7 @@ onMounted(async () => {
           />
         </q-item-section>
       </q-item>
-      <q-item tag="label" v-ripple>
+      <q-item v-if="isGenericMode" tag="label" v-ripple>
         <q-item-section>
           <q-item-label>
             {{ i18n('labels.staticRanges') }}

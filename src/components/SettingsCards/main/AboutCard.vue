@@ -4,6 +4,7 @@ import { copyToClipboard, useQuasar } from 'quasar';
 import { ref } from 'vue';
 
 import PackageJson from 'app/package.json';
+import { contextManager } from 'boot/context';
 import { officeHelper } from 'boot/office';
 import { i18nSubPath } from 'src/utils/common';
 import { useSettingsStore } from 'stores/settings';
@@ -12,7 +13,7 @@ const emit = defineEmits<{
   push: [path: string];
 }>();
 
-const { developerMode } = storeToRefs(useSettingsStore());
+const { serviceUrl, developerMode } = storeToRefs(useSettingsStore());
 const { notify } = useQuasar();
 
 const developerModeCounter = ref(0);
@@ -95,6 +96,26 @@ const tryEnableDeveloperMode = () => {
               {{ officeHelper.info?.platform }}
             </q-chip>
           </div>
+        </q-item-section>
+      </q-item>
+      <q-item clickable v-ripple>
+        <q-item-section>
+          <q-item-label>
+            {{ i18n('labels.mode') }}
+          </q-item-label>
+        </q-item-section>
+        <q-item-section side>
+          {{ i18n(`modes.${contextManager.contextMode}`) }}
+        </q-item-section>
+      </q-item>
+      <q-item tag="label" v-ripple>
+        <q-item-section>
+          <q-item-label>
+            {{ i18n('labels.serviceUrl') }}
+          </q-item-label>
+        </q-item-section>
+        <q-item-section side>
+          {{ serviceUrl?.length ? serviceUrl : i18n('labels.localTest') }}
         </q-item-section>
       </q-item>
       <q-item clickable v-ripple @click="tryEnableDeveloperMode">

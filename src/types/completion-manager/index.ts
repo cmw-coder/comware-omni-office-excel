@@ -2,7 +2,7 @@ import { isCancel } from 'axios';
 
 import { GenerateResult, LRUCache } from './types';
 import type { GenerateResponse, PromptElements } from './types';
-import { generate } from './utils';
+import { generateRaw } from './utils';
 
 export class CompletionManager {
   private _abortController?: AbortController;
@@ -25,7 +25,7 @@ export class CompletionManager {
     this._abortController = new AbortController();
 
     try {
-      const result = await generate(promptElements.stringify(), this._abortController.signal);
+      const result = await generateRaw(promptElements.stringify(), this._abortController.signal);
       if (result?.length) {
         this._cache.put(cacheKey, [result]);
         return {
