@@ -27,7 +27,7 @@ export interface ContentContext {
 }
 
 export enum CompletionStrategy {
-  generic = 'generic',
+  general = 'general',
   testCase = 'testCase',
 }
 

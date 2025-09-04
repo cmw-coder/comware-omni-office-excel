@@ -12,7 +12,7 @@ export class ContextManager {
 
     let result: CellData[];
     switch (completionStore.completionStrategy) {
-      case CompletionStrategy.generic: {
+      case CompletionStrategy.general: {
         result = await officeHelper.retrieveRangeByRectCenterAndAxes(currentCellAddress, 3, 3);
         break;
       }

@@ -84,7 +84,7 @@ onMounted(async () => {
         </q-item-section>
         <q-item-section side>
           <q-input
-            v-if="completionStrategy === CompletionStrategy.generic"
+            v-if="completionStrategy === CompletionStrategy.general"
             clearable
             dense
             input-class="text-right"

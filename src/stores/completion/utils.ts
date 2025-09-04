@@ -29,6 +29,6 @@ export const detectCompletionStrategyAndFeature = async (): Promise<{
     }
   }
   return {
-    strategy: CompletionStrategy.generic,
+    strategy: CompletionStrategy.general,
   };
 };

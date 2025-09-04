@@ -10,20 +10,20 @@ import { detectCompletionStrategyAndFeature } from './utils';
 export const useCompletionStore = defineStore(
   'completion',
   () => {
-    const completionStrategy = ref<CompletionStrategy>(CompletionStrategy.generic);
+    const completionStrategy = ref<CompletionStrategy>(CompletionStrategy.general);
     const completionStrategyFeature = ref<CompletionStrategyFeature>();
     const fileId = ref<string>('');
     const staticRangesMap = reactive<Record<string, string>>({});
 
     const staticRangeAddress = computed({
       get: () => {
-        if (completionStrategy.value === CompletionStrategy.generic) {
+        if (completionStrategy.value === CompletionStrategy.general) {
           return staticRangesMap[fileId.value] ?? '';
         }
         return completionStrategyFeature.value?.staticRangeAddress ?? '';
       },
       set: (value: string) => {
-        if (completionStrategy.value === CompletionStrategy.generic) {
+        if (completionStrategy.value === CompletionStrategy.general) {
           staticRangesMap[fileId.value] = value;
         }
       },
