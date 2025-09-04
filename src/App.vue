@@ -1,21 +1,17 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia';
 import { onMounted } from 'vue';
 
 import { useCompletionStore } from 'stores/completion';
 import { useSettingsStore } from 'stores/settings';
 
 const { initCompletionStore } = useCompletionStore();
-const { applyLocale, applyTheme, detectBaseUrl } = useSettingsStore();
-const { serviceUrl } = storeToRefs(useSettingsStore());
+const { applyLocale, applyTheme, detectNetworkZone } = useSettingsStore();
 
 onMounted(() => {
   initCompletionStore().catch((e) => console.error(e));
   applyLocale();
   applyTheme();
-  if (!serviceUrl.value.length) {
-    detectBaseUrl().catch((e) => console.error(e));
-  }
+  detectNetworkZone().catch((e) => console.error(e));
 });
 </script>
 

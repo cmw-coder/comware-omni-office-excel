@@ -38,10 +38,16 @@ export default {
             title: 'About',
             environment: 'Environment',
             completionStrategy: 'Completion Strategy',
-            serviceUrl: 'Service URL',
+            networkZone: 'Network Zone',
             publicNetwork: 'No Service (Public Network)',
             version: 'Version',
             developerOptions: 'Developer Options',
+          },
+          networkZone: {
+            Red: 'Red',
+            Yellow: 'Yellow',
+            Route: 'Route',
+            Public: 'Public',
           },
           notifications: {
             copySuccess: 'Office info copied to clipboard',

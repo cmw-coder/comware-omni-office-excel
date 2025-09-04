@@ -38,10 +38,16 @@ export default {
             title: '关于',
             environment: '环境',
             completionStrategy: '补全策略',
-            serviceUrl: '服务 URL',
+            networkZone: '网络区域',
             publicNetwork: '无服务（公网）',
             version: '版本',
             developerOptions: '开发者选项',
+          },
+          networkZone: {
+            Red: '红区',
+            Yellow: '黄区',
+            Route: '路由红区',
+            Public: '公网',
           },
           notifications: {
             copySuccess: 'Office 信息已复制到剪贴板',

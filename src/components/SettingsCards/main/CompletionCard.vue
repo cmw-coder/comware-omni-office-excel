@@ -3,7 +3,7 @@ import { storeToRefs } from 'pinia';
 import { onMounted, ref } from 'vue';
 
 import { officeHelper } from 'boot/office';
-import { CompletionStrategy } from 'src/types/common';
+import { CompletionStrategy, NetworkZone } from 'src/types/common';
 import { i18nSubPath } from 'src/utils/common';
 import { useCompletionStore } from 'stores/completion';
 import { useSettingsStore } from 'stores/settings';
@@ -30,7 +30,7 @@ const models = [
 const i18n = i18nSubPath('components.SettingsCards.main.CompletionCard');
 
 const { completionStrategy, staticRangeAddress } = storeToRefs(useCompletionStore());
-const { apiToken, model, serviceUrl } = storeToRefs(useSettingsStore());
+const { apiToken, model, networkZone } = storeToRefs(useSettingsStore());
 
 const fileId = ref<string>();
 
@@ -48,7 +48,7 @@ onMounted(async () => {
     </q-card-section>
     <q-separator />
     <q-list separator>
-      <q-item v-if="!serviceUrl?.length" tag="label" v-ripple>
+      <q-item v-if="networkZone === NetworkZone.Public" tag="label" v-ripple>
         <q-item-section>
           <q-item-label>
             {{ i18n('labels.apiToken') }}

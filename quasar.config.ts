@@ -1,14 +1,12 @@
-// Configuration for your app
-// https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
-
 import { defineConfig } from '#q-app/wrappers';
+import { copyFileSync, cpSync, readFileSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { ensureCertificatesAreInstalled } from 'office-addin-dev-certs';
 import { validateManifest } from 'office-addin-manifest';
 
-import { copyFileSync, cpSync, readFileSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { homedir } from 'node:os';
+import packageJson from './package.json';
 
 const MANIFEST_PATH = 'manifest.xml';
 const OFFICE_JS_SCRIPT_TAG = `<script src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>`;
@@ -138,7 +136,7 @@ export default defineConfig((ctx) => {
             `${quasarConf.build.distDir}/manifest.xml`,
             readFileSync(MANIFEST_PATH, 'utf-8').replace(
               'https://localhost:9000',
-              process.env.BUILD_RELEASE === 'true' ? 'https://' : 'https://',
+              `https://${packageJson.name}.aitester.h3c.com/${process.env.BUILD_RELEASE === 'true' ? 'release' : 'dev'}`,
             ),
           );
           copyFileSync(MANIFEST_PATH, `${quasarConf.build.distDir}/manifest.xml`);

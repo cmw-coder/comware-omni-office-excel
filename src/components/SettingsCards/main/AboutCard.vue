@@ -16,7 +16,7 @@ const emit = defineEmits<{
 const i18n = i18nSubPath('components.SettingsCards.main.AboutCard');
 
 const { completionStrategy } = storeToRefs(useCompletionStore());
-const { serviceUrl, developerMode } = storeToRefs(useSettingsStore());
+const { developerMode, networkZone } = storeToRefs(useSettingsStore());
 const { notify } = useQuasar();
 
 const developerModeCounter = ref(0);
@@ -114,11 +114,11 @@ const tryEnableDeveloperMode = () => {
       <q-item tag="label" v-ripple>
         <q-item-section>
           <q-item-label>
-            {{ i18n('labels.serviceUrl') }}
+            {{ i18n('labels.networkZone') }}
           </q-item-label>
         </q-item-section>
         <q-item-section side>
-          {{ serviceUrl?.length ? serviceUrl : i18n('labels.publicNetwork') }}
+          {{ i18n(`networkZone.${networkZone}`) }}
         </q-item-section>
       </q-item>
       <q-item clickable v-ripple @click="tryEnableDeveloperMode">

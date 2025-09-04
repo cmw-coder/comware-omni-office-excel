@@ -3,8 +3,10 @@ import { Dark } from 'quasar';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import { DARK_MODES, DEFAULT_SERVER_URL_MAP } from './constants';
-import type { Locales, NetworkZone } from './types';
+import { NetworkZone } from 'src/types/common';
+
+import { DARK_MODES, NETWORK_ZONE_TEST_URL_MAP } from './constants';
+import type { Locales } from './types';
 import { checkUrlAccessible } from './utils';
 
 export const useSettingsStore = defineStore(
@@ -17,8 +19,7 @@ export const useSettingsStore = defineStore(
     const developerMode = ref(false);
     const locale = ref<string>(i18nLocale.value);
     const model = ref<string>('google/gemini-2.5-flash');
-    const serviceUrl = ref<string>('');
-    const username = ref<string>('');
+    const networkZone = ref<NetworkZone>(NetworkZone.Public);
 
     const themeProps = computed(() => {
       switch (darkMode.value) {
@@ -39,16 +40,16 @@ export const useSettingsStore = defineStore(
       Dark.set(darkMode.value);
     };
 
-    const detectBaseUrl = async () => {
+    const detectNetworkZone = async () => {
       const results = await Promise.all(
-        Object.entries(DEFAULT_SERVER_URL_MAP).map(async ([zone, url]) => ({
+        Object.entries(NETWORK_ZONE_TEST_URL_MAP).map(async ([zone, url]) => ({
           zone: <NetworkZone>zone,
           accessible: await checkUrlAccessible(url),
         })),
       );
       const availableNetworkZone = results.find(({ accessible }) => accessible)?.zone;
       if (availableNetworkZone) {
-        serviceUrl.value = DEFAULT_SERVER_URL_MAP[availableNetworkZone];
+        networkZone.value = availableNetworkZone;
       }
     };
 
@@ -64,12 +65,11 @@ export const useSettingsStore = defineStore(
       developerMode,
       locale,
       model,
-      serviceUrl,
-      username,
+      networkZone,
       themeProps,
       applyLocale,
       applyTheme,
-      detectBaseUrl,
+      detectNetworkZone,
       toggleTheme,
     };
   },

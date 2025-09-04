@@ -35,3 +35,9 @@ export enum CompletionStrategyVersion {
   v1 = 'v1',
   v2 = 'v2',
 }
+export enum NetworkZone {
+  Red = 'Red',
+  Yellow = 'Yellow',
+  Route = 'Route',
+  Public = 'Public',
+}

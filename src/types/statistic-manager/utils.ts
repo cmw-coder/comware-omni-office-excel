@@ -6,6 +6,7 @@ import { useSettingsStore } from 'stores/settings';
 import { sleep } from 'src/utils/common';
 
 import type { ReportSkuDto } from './types';
+import { SERVICE_BASE_URL_MAP } from 'src/types/statistic-manager/constants';
 
 const _reportSku = async (data: ReportSkuDto[]) => {
   try {
@@ -17,27 +18,19 @@ const _reportSku = async (data: ReportSkuDto[]) => {
         )
         .join('\n'),
     );
-    await axios.post('/kong/RdTestResourceStatistic/report/summary', data, {
-      baseURL: useSettingsStore().serviceUrl,
-    });
+    const baseUrl = SERVICE_BASE_URL_MAP[useSettingsStore().networkZone];
+    if (!baseUrl.length) {
+      await sleep(200 + Math.random() * 300);
+    } else {
+      await axios.post('/kong/RdTestResourceStatistic/report/summary', data, {
+        baseURL: baseUrl,
+      });
+    }
     return true;
   } catch (e) {
     console.error('StatisticsReporter Failed', data, e);
     return false;
   }
-};
-
-const _pseudoReportSku = async (data: ReportSkuDto[]) => {
-  console.debug(
-    data
-      .map(
-        (item) =>
-          `SKU 上报: ${item.extra} ${item.subType} ${item.type}.${item.product}.${item.firstClass}.${item.secondClass}.${item.skuName} [${item.count}]`,
-      )
-      .join('\n'),
-  );
-  await sleep(200 + Math.random() * 300);
-  return true;
 };
 
 export const acceptSku = async (
@@ -55,12 +48,12 @@ export const acceptSku = async (
     firstClass: 'CODE',
     secondClass: modelName,
     skuName: 'ADOPT',
-    user: useSettingsStore().username,
+    user: '',
     userType: 'USER',
     extra: PackageJson.version,
     subType: projectId,
   };
-  return await (process.env.DEV ? _pseudoReportSku([data]) : _reportSku([data]));
+  return await _reportSku([data]);
 };
 
 export const generateSku = async (
@@ -78,10 +71,10 @@ export const generateSku = async (
     firstClass: 'CODE',
     secondClass: modelName,
     skuName: 'GENE',
-    user: useSettingsStore().username,
+    user: '',
     userType: 'USER',
     extra: PackageJson.version,
     subType: projectId,
   };
-  return await (process.env.DEV ? _pseudoReportSku([data]) : _reportSku([data]));
+  return await _reportSku([data]);
 };
