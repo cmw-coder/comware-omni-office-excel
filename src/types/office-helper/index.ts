@@ -1,6 +1,7 @@
 import { uid } from 'quasar';
 
 import type { CellAddress, CellData, RangeAddress } from 'src/types/common';
+import { useCompletionStore } from 'stores/completion';
 
 import { PROPERTY_FILE_ID_KEY, OFFICE_JS_SCRIPT_TAG, PROPERTY_USER_ID_KEY } from './constants';
 import type { OfficeInfo, SheetChangedHandler, SheetSelectionChangedHandler } from './types';
@@ -446,6 +447,11 @@ export class OfficeHelper {
       Excel.run(async (context) => {
         context.workbook.worksheets.load();
         await context.sync();
+
+        context.workbook.onActivated.add(async () => {
+          console.debug('[OfficeHelper](_registryEvents)', 'Workbook activated - Excel file opened');
+          await useCompletionStore().initCompletionStore();
+        });
 
         context.workbook.worksheets.items.forEach((worksheet) => {
           worksheet.onChanged.add(async (event) => {
