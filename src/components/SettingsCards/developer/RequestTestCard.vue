@@ -3,10 +3,10 @@ import { ref } from 'vue';
 
 import { i18nSubPath } from 'src/utils/common';
 
+const i18n = i18nSubPath('components.SettingsCards.developer.RequestTestCard');
+
 const prefix = ref<string>();
 const suffix = ref<string>();
-
-const i18n = i18nSubPath('components.SettingsCards.developer.RequestTestCard');
 </script>
 
 <template>
@@ -21,6 +21,7 @@ const i18n = i18nSubPath('components.SettingsCards.developer.RequestTestCard');
       <q-input
         clearable
         :label="i18n('labels.contextPrefix')"
+        name="prefix"
         outlined
         type="textarea"
         v-model="prefix"
@@ -28,6 +29,7 @@ const i18n = i18nSubPath('components.SettingsCards.developer.RequestTestCard');
       <q-input
         clearable
         :label="i18n('labels.contextSuffix')"
+        name="contextSuffix"
         outlined
         type="textarea"
         v-model="suffix"

@@ -14,12 +14,15 @@ export interface RangeAddress {
 }
 
 export interface ContentContext {
-  fileName: string;
-  sheetName: string;
+  fileName: string; // Excel file name
+  sheetName: string; // Worksheet name
+  projectId: string; // NV ID
+  userId: string; // User ID
+  timestamp: string; // Timestamp of the request
   cells: {
-    current: CellData;
-    related: CellData[];
-    static: CellData[];
+    current: CellData; // Current cell being edited
+    related: CellData[]; // Cells related to the current cell (e.g., same row or column)
+    static: CellData[]; // Static cells that provide context (e.g., headers)
   };
 }
 

@@ -1,11 +1,10 @@
 import { uid } from 'quasar';
 
-import { OFFICE_JS_SCRIPT_TAG } from 'src/constants/common';
 import type { CellAddress, CellData, RangeAddress } from 'src/types/common';
 
+import { PROPERTY_FILE_ID_KEY, OFFICE_JS_SCRIPT_TAG } from './constants';
 import type { OfficeInfo, SheetChangedHandler, SheetSelectionChangedHandler } from './types';
 import { stringifyRangeAreaAddress } from './utils';
-import { PROPERTY_FILE_ID_KEY } from 'src/types/office-helper/constants';
 
 export class OfficeHelper {
   private _initialized = false;
@@ -182,6 +181,66 @@ export class OfficeHelper {
     });
   }
 
+  async retrieveRangesCellCountRaw(address: string): Promise<number> {
+    if (!this._isAvailable) {
+      throw new Error('[OfficeHelper](RetrieveRangesCellCountRaw) Instance is not available');
+    }
+
+    return new Promise((resolve, reject) => {
+      Excel.run(async (context) => {
+        try {
+          const currentSheet = context.workbook.worksheets.getActiveWorksheet();
+          const ranges = currentSheet.getRanges(address);
+          ranges.load(['address', 'cellCount']);
+          await context.sync();
+
+          console.debug(
+            '[OfficeHelper](RetrieveRangesCellCountRaw)',
+            `Retrieved cell count for "${address}":`,
+            ranges.cellCount,
+          );
+
+          resolve(ranges.cellCount);
+        } catch (error) {
+          console.warn(
+            '[OfficeHelper](RetrieveRangesCellCountRaw)',
+            'Error during "Excel.run":',
+            error,
+          );
+          reject(error instanceof Error ? error : new Error(String(error)));
+        }
+      }).catch((error) => {
+        console.error(
+          '[OfficeHelper](RetrieveRangesCellCountRaw)',
+          'Uncaught error during "Excel.run":',
+          error,
+        );
+        reject(error instanceof Error ? error : new Error(String(error)));
+      });
+    });
+  }
+
+  async retrieveRangeByRectCenterAndAxes(
+    centerCellAddress: CellAddress,
+    a: number,
+    b: number,
+    ignoreEmpty = false,
+  ): Promise<CellData[]> {
+    a = Math.round(Math.abs(a));
+    b = Math.round(Math.abs(b));
+    const beginColumnIndex = Math.max(0, centerCellAddress.column - a);
+    const beginRowIndex = Math.max(0, centerCellAddress.row - b);
+    return await this.retrieveRanges(
+      [
+        {
+          begin: { column: beginColumnIndex, row: beginRowIndex },
+          end: { column: centerCellAddress.column + a, row: centerCellAddress.row + b },
+        },
+      ],
+      ignoreEmpty,
+    );
+  }
+
   async retrieveRanges(
     rangeAreasAddress: RangeAddress[],
     ignoreEmpty = false,
@@ -238,27 +297,6 @@ export class OfficeHelper {
         reject(error instanceof Error ? error : new Error(String(error)));
       });
     });
-  }
-
-  async retrieveRangeByRectCenterAndAxes(
-    centerCellAddress: CellAddress,
-    a: number,
-    b: number,
-    ignoreEmpty = false,
-  ): Promise<CellData[]> {
-    a = Math.round(Math.abs(a));
-    b = Math.round(Math.abs(b));
-    const beginColumnIndex = Math.max(0, centerCellAddress.column - a);
-    const beginRowIndex = Math.max(0, centerCellAddress.row - b);
-    return await this.retrieveRanges(
-      [
-        {
-          begin: { column: beginColumnIndex, row: beginRowIndex },
-          end: { column: centerCellAddress.column + a, row: centerCellAddress.row + b },
-        },
-      ],
-      ignoreEmpty,
-    );
   }
 
   async retrieveFileId(): Promise<string> {

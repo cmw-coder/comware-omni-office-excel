@@ -3,10 +3,10 @@ import { storeToRefs } from 'pinia';
 import { onMounted, ref } from 'vue';
 
 import { officeHelper } from 'boot/office';
+import { CompletionStrategy } from 'src/types/common';
 import { i18nSubPath } from 'src/utils/common';
 import { useCompletionStore } from 'stores/completion';
 import { useSettingsStore } from 'stores/settings';
-import { CompletionStrategy } from 'src/types/common';
 
 const models = [
   {
@@ -28,6 +28,7 @@ const models = [
 ];
 
 const i18n = i18nSubPath('components.SettingsCards.main.CompletionCard');
+
 const { completionStrategy, staticRangeAddress } = storeToRefs(useCompletionStore());
 const { apiToken, model, serviceUrl } = storeToRefs(useSettingsStore());
 

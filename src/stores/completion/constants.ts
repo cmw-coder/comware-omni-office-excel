@@ -347,13 +347,8 @@ export const COMPLETION_STRATEGY_DEFINITIONS: CompletionStrategyDefinition[] = [
             content: '作者',
           },
         ],
-        staticRangeAddress: 'A1:S1'
+        staticRangeAddress: 'A1:S1',
       },
     ],
   },
 ];
-
-export const GENERIC_COMPLETION_STRATEGY_DEFINITION: CompletionStrategyDefinition = {
-  strategy: CompletionStrategy.generic,
-  features: [],
-}

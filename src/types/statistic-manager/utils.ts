@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { DateTime } from 'luxon';
 
-import type { ReportSkuDto } from './types';
-
 import PackageJson from 'app/package.json';
 import { useSettingsStore } from 'stores/settings';
 import { sleep } from 'src/utils/common';
+
+import type { ReportSkuDto } from './types';
 
 const _reportSku = async (data: ReportSkuDto[]) => {
   try {
@@ -54,7 +54,7 @@ export const acceptSku = async (
     product: 'EXCEL',
     firstClass: 'CODE',
     secondClass: modelName,
-    skuName: 'KEEP',
+    skuName: 'ADOPT',
     user: useSettingsStore().username,
     userType: 'USER',
     extra: PackageJson.version,

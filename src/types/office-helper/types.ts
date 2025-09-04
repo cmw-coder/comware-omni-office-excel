@@ -10,7 +10,7 @@ export type SheetChangedHandler = (
 ) => Promise<void>;
 
 export type SheetSelectionChangedHandler = (
-  event:  Excel.WorksheetSelectionChangedEventArgs,
+  event: Excel.WorksheetSelectionChangedEventArgs,
   worksheet: Excel.Worksheet,
   context: Excel.RequestContext,
 ) => Promise<void>;

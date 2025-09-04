@@ -6,8 +6,8 @@ import { contextManager } from 'boot/context';
 import { officeHelper } from 'boot/office';
 import { statisticManager } from 'boot/statistic';
 import type { CellData } from 'src/types/common';
-import { GenerateResult, PromptElements } from 'src/types/completion-manager/types';
 import { i18nSubPath } from 'src/utils/common';
+import { GenerateResult, PromptElements } from 'src/types/completion-manager/types/common';
 
 const templateId = 'components.DashboardCards.CompletionCard';
 
@@ -31,16 +31,16 @@ const triggerCompletion = async (address?: string) => {
   const statisticId = statisticManager.begin('');
   let currentCellData: CellData | undefined;
   if (address) {
-    const modifiedCellDataList = await officeHelper.retrieveRangesRaw(address);
-    if (modifiedCellDataList.length > 1) {
+    console.log({ address });
+    const cellCount = await officeHelper.retrieveRangesCellCountRaw(address);
+    if (cellCount > 1 || cellCount < 0) {
       // TODO: Support multi-cell edit
-      console.log('Multiple cells edited, ignore:', { modifiedCellDataList });
+      console.log('Multiple cells edited, ignore:', { cellCount });
       statisticManager.abort(statisticId);
       loading.value = false;
       return;
     }
-
-    currentCellData = modifiedCellDataList[0];
+    currentCellData = (await officeHelper.retrieveRangesRaw(address))[0];
   } else {
     currentCellData = await officeHelper.retrieveCurrentCellData();
   }
@@ -62,11 +62,14 @@ const triggerCompletion = async (address?: string) => {
   const context = {
     fileName,
     sheetName,
+    projectId: '',
+    userId: '',
+    timestamp: '',
     cells: {
       current: currentCellData,
       related: relatedCellDataList,
       static: staticCellDataList,
-    }
+    },
   };
   statisticManager.setContext(statisticId, context);
 

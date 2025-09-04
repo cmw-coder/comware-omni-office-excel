@@ -39,7 +39,7 @@ export default {
             environment: '环境',
             completionStrategy: '补全策略',
             serviceUrl: '服务 URL',
-            localTest: '本地测试',
+            publicNetwork: '无服务（公网）',
             version: '版本',
             developerOptions: '开发者选项',
           },

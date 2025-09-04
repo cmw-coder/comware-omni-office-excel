@@ -1,11 +1,10 @@
 import { DateTime } from 'luxon';
 import { uid } from 'quasar';
 
-import { acceptSku, generateSku } from './utils';
-
-import { NEW_LINE_REGEX } from 'src/constants/common';
 import type { ContentContext } from 'src/types/common';
-import type { PromptElements } from 'src/types/completion-manager/types';
+import type { PromptElements } from 'src/types/completion-manager/types/common';
+
+import { acceptSku, generateSku } from './utils';
 
 export interface CompletionCandidate {
   index: number;
@@ -78,7 +77,7 @@ export class StatisticsData {
 
       generateSku(
         this._timestamps.begin,
-        this.currentCandidate()?.content.split(NEW_LINE_REGEX).length,
+        this.currentCandidate()?.content.length,
         'CMW',
         this.projectId,
       ).catch(console.error);
@@ -119,7 +118,7 @@ export class StatisticsData {
   accept() {
     acceptSku(
       this._timestamps.begin,
-      this.currentCandidate()?.content.split(NEW_LINE_REGEX).length,
+      this.currentCandidate()?.content.length,
       'CMW',
       this.projectId,
     ).catch(console.error);
@@ -133,12 +132,9 @@ export class StatisticsData {
     if (!this._checkedIndexes.has(index)) {
       this._checkedIndexes.add(index);
 
-      generateSku(
-        this._timestamps.begin,
-        content.split(NEW_LINE_REGEX).length,
-        'CMW',
-        this.projectId,
-      ).catch(console.error);
+      generateSku(this._timestamps.begin, content.length, 'CMW', this.projectId).catch(
+        console.error,
+      );
     }
     this._lastCheckedIndex = index;
     return { index, content };

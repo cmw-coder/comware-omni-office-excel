@@ -1,44 +1,6 @@
 import { rawModelApi } from 'boot/axios';
-
+import type { CompletionBody } from 'src/types/completion-manager/types/network';
 import { useSettingsStore } from 'stores/settings';
-
-type ResponseUsage = {
-  prompt_tokens: number;
-  completion_tokens: number;
-  total_tokens: number;
-};
-
-type NonStreamingChoice = {
-  finish_reason: string | null;
-  native_finish_reason: string | null;
-  message: {
-    content: string | null;
-    role: string;
-    tool_calls?: ToolCall[];
-  };
-  error?: ErrorResponse;
-};
-
-type ErrorResponse = {
-  code: number; // See "Error Handling" section
-  message: string;
-  metadata?: Record<string, unknown>; // Contains additional error information such as provider details, the raw error message, etc.
-};
-
-type ToolCall = {
-  id: string;
-  type: 'function';
-  function: never;
-};
-interface CompletionBody {
-  id: string;
-  choices: NonStreamingChoice[];
-  created: number; // Unix timestamp
-  model: string;
-  object: 'chat.completion' | 'chat.completion.chunk';
-  system_fingerprint?: string; // Only present if the provider supports it
-  usage?: ResponseUsage;
-}
 
 export const generateRaw = async (content: string, signal: AbortSignal) => {
   const settingsStore = useSettingsStore();
@@ -115,7 +77,7 @@ export const generateRaw = async (content: string, signal: AbortSignal) => {
         {
           role: 'system',
           content:
-            '请你参考当前测试用例表格的相关数据，补全当前单元格的内容(current.content)，只需要给我补全的内容即可，不要返回其他多余文本。',
+            '请你参考当前测试用例表格的相关数据，修改或补全当前单元格的内容(current.content)，只需要给我完整的单元格内容即可，不要返回其他多余文本。',
         },
       ],
     },

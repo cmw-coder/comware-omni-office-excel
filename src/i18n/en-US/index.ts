@@ -39,7 +39,7 @@ export default {
             environment: 'Environment',
             completionStrategy: 'Completion Strategy',
             serviceUrl: 'Service URL',
-            localTest: 'Local Test',
+            publicNetwork: 'No Service (Public Network)',
             version: 'Version',
             developerOptions: 'Developer Options',
           },
@@ -58,8 +58,9 @@ export default {
             staticRanges: 'Static Cells',
           },
           tooltips: {
-            whyCannotEditStaticRanges: 'Static Cells can only be set when "Completion Strategy" is "General"',
-          }
+            whyCannotEditStaticRanges:
+              'Static Cells can only be set when "Completion Strategy" is "General"',
+          },
         },
         GeneralCard: {
           labels: {

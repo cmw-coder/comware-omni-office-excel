@@ -3,9 +3,9 @@ import { Dark } from 'quasar';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import { DARK_MODES, DEFAULT_SERVER_URL_MAP } from 'stores/settings/constants';
-import type { Locales, NetworkZone } from 'stores/settings/types';
-import { checkUrlAccessible } from 'stores/settings/utils';
+import { DARK_MODES, DEFAULT_SERVER_URL_MAP } from './constants';
+import type { Locales, NetworkZone } from './types';
+import { checkUrlAccessible } from './utils';
 
 export const useSettingsStore = defineStore(
   'settings',

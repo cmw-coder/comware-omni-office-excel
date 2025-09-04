@@ -1,8 +1,8 @@
 import { isCancel } from 'axios';
 
-import { GenerateResult, LRUCache } from './types';
-import type { GenerateResponse, PromptElements } from './types';
-import { generateRaw } from './utils';
+import { generateRaw } from './utils/network';
+import { GenerateResult, LRUCache } from './types/common';
+import type { GenerateResponse, PromptElements } from './types/common';
 
 export class CompletionManager {
   private _abortController?: AbortController;

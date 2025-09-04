@@ -13,13 +13,13 @@ const emit = defineEmits<{
   push: [path: string];
 }>();
 
+const i18n = i18nSubPath('components.SettingsCards.main.AboutCard');
+
 const { completionStrategy } = storeToRefs(useCompletionStore());
 const { serviceUrl, developerMode } = storeToRefs(useSettingsStore());
 const { notify } = useQuasar();
 
 const developerModeCounter = ref(0);
-
-const i18n = i18nSubPath('components.SettingsCards.main.AboutCard');
 
 const copyInfo = () => {
   copyToClipboard(JSON.stringify(officeHelper.info))
@@ -54,6 +54,7 @@ const tryEnableDeveloperMode = () => {
     notify({
       type: 'info',
       group: 'developerModeHint',
+      position: 'top',
       message: i18n('notifications.developerModeHint', {
         times: 7 - developerModeCounter.value,
       }),
@@ -64,6 +65,7 @@ const tryEnableDeveloperMode = () => {
     developerMode.value = true;
     notify({
       type: 'positive',
+      position: 'top',
       message: i18n('notifications.developerModeEnabled'),
       icon: 'mdi-dev-to',
     });
@@ -116,7 +118,7 @@ const tryEnableDeveloperMode = () => {
           </q-item-label>
         </q-item-section>
         <q-item-section side>
-          {{ serviceUrl?.length ? serviceUrl : i18n('labels.localTest') }}
+          {{ serviceUrl?.length ? serviceUrl : i18n('labels.publicNetwork') }}
         </q-item-section>
       </q-item>
       <q-item clickable v-ripple @click="tryEnableDeveloperMode">

@@ -4,10 +4,10 @@ import { storeToRefs } from 'pinia';
 import { i18nSubPath } from 'src/utils/common';
 import { useSettingsStore } from 'stores/settings';
 
+const i18n = i18nSubPath('components.ThemeButton');
+
 const { toggleTheme } = useSettingsStore();
 const { themeProps } = storeToRefs(useSettingsStore());
-
-const i18n = i18nSubPath('components.ThemeButton');
 </script>
 
 <template>

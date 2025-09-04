@@ -7,8 +7,10 @@ import messages from 'src/i18n';
 import { i18nSubPath } from 'src/utils/common';
 import { useSettingsStore } from 'stores/settings';
 
-const { locale } = storeToRefs(useSettingsStore());
+const i18n = i18nSubPath('components.SettingsCards.main.GeneralCard');
+
 const { applyLocale } = useSettingsStore();
+const { locale } = storeToRefs(useSettingsStore());
 
 const locales = computed(() => {
   return Object.keys(messages).map((key: string) => ({
@@ -16,8 +18,6 @@ const locales = computed(() => {
     value: key,
   }));
 });
-
-const i18n = i18nSubPath('components.SettingsCards.main.GeneralCard');
 </script>
 
 <template>
