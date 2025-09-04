@@ -2,11 +2,12 @@ import axios from 'axios';
 import { DateTime } from 'luxon';
 
 import PackageJson from 'app/package.json';
+import { officeHelper } from 'boot/office';
 import { useSettingsStore } from 'stores/settings';
 import { sleep } from 'src/utils/common';
 
+import { SERVICE_BASE_URL_MAP } from './constants';
 import type { ReportSkuDto } from './types';
-import { SERVICE_BASE_URL_MAP } from 'src/types/statistic-manager/constants';
 
 const _reportSku = async (data: ReportSkuDto[]) => {
   try {
@@ -48,7 +49,7 @@ export const acceptSku = async (
     firstClass: 'CODE',
     secondClass: modelName,
     skuName: 'ADOPT',
-    user: '',
+    user: await officeHelper.retrieveCurrentUserName(),
     userType: 'USER',
     extra: PackageJson.version,
     subType: projectId,
@@ -71,7 +72,7 @@ export const generateSku = async (
     firstClass: 'CODE',
     secondClass: modelName,
     skuName: 'GENE',
-    user: '',
+    user: await officeHelper.retrieveCurrentUserName(),
     userType: 'USER',
     extra: PackageJson.version,
     subType: projectId,

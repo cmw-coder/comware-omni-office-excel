@@ -2,7 +2,7 @@ import { uid } from 'quasar';
 
 import type { CellAddress, CellData, RangeAddress } from 'src/types/common';
 
-import { PROPERTY_FILE_ID_KEY, OFFICE_JS_SCRIPT_TAG } from './constants';
+import { PROPERTY_FILE_ID_KEY, OFFICE_JS_SCRIPT_TAG, PROPERTY_USER_ID_KEY } from './constants';
 import type { OfficeInfo, SheetChangedHandler, SheetSelectionChangedHandler } from './types';
 import { stringifyRangeAreaAddress } from './utils';
 
@@ -296,6 +296,84 @@ export class OfficeHelper {
         );
         reject(error instanceof Error ? error : new Error(String(error)));
       });
+    });
+  }
+
+  async retrieveCurrentUserName(): Promise<string> {
+    if (!this._isAvailable) {
+      throw new Error('[OfficeHelper](retrieveCurrentUserName) Instance is not available');
+    }
+
+    return new Promise((resolve) => {
+      try {
+        // Method 1: Try to get user ID from mailbox profile
+        if (Office.context && Office.context.mailbox && Office.context.mailbox.userProfile) {
+          const userName =
+            Office.context.mailbox.userProfile.displayName ||
+            Office.context.mailbox.userProfile.emailAddress ||
+            'Unknown';
+          console.debug(
+            '[OfficeHelper](retrieveCurrentUserName)',
+            'userName from mailbox:',
+            userName,
+          );
+          resolve(userName);
+          return;
+        }
+
+        // Method 2: Try to get user ID from custom properties, fallback to document author
+        Excel.run(async (context) => {
+          try {
+            const customProperties = context.workbook.properties.custom;
+            customProperties.load();
+            await context.sync();
+
+            const userIdProperty = customProperties.getItem(PROPERTY_USER_ID_KEY);
+            userIdProperty.load('value');
+            await context.sync();
+
+            resolve(userIdProperty.value);
+            return;
+          } catch (error) {
+            console.warn(
+              '[OfficeHelper](retrieveCurrentUserName)',
+              `Error loading custom property "${PROPERTY_USER_ID_KEY}":`,
+              error,
+            );
+          }
+
+          try {
+            const docProps = context.workbook.properties;
+            docProps.load(['author']);
+            await context.sync();
+
+            const userName = docProps.author || 'Unknown';
+            console.debug(
+              '[OfficeHelper](retrieveCurrentUserName)',
+              'userName from document author:',
+              userName,
+            );
+            resolve(userName);
+          } catch (error) {
+            console.warn(
+              '[OfficeHelper](retrieveCurrentUserName)',
+              'Error during Excel.run:',
+              error,
+            );
+            resolve('Unknown');
+          }
+        }).catch((error) => {
+          console.error(
+            '[OfficeHelper](retrieveCurrentUserName)',
+            'Uncaught error during Excel.run:',
+            error,
+          );
+          resolve('Unknown');
+        });
+      } catch (error) {
+        console.error('[OfficeHelper](retrieveCurrentUserName)', 'Error getting user name:', error);
+        resolve('Unknown');
+      }
     });
   }
 

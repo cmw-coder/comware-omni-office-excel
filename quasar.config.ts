@@ -1,5 +1,5 @@
 import { defineConfig } from '#q-app/wrappers';
-import { copyFileSync, cpSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -134,12 +134,11 @@ export default defineConfig((ctx) => {
         if (quasarConf.build?.distDir) {
           writeFileSync(
             `${quasarConf.build.distDir}/manifest.xml`,
-            readFileSync(MANIFEST_PATH, 'utf-8').replace(
+            readFileSync(MANIFEST_PATH, 'utf-8').replaceAll(
               'https://localhost:9000',
               `https://${packageJson.name}.aitester.h3c.com/${process.env.BUILD_RELEASE === 'true' ? 'release' : 'dev'}`,
             ),
           );
-          copyFileSync(MANIFEST_PATH, `${quasarConf.build.distDir}/manifest.xml`);
 
           cpSync(
             'node_modules/@microsoft/office-js/dist',

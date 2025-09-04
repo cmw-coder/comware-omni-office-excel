@@ -63,7 +63,7 @@ const triggerCompletion = async (address?: string) => {
     fileName,
     sheetName,
     projectId: '',
-    userId: '',
+    userId: await officeHelper.retrieveCurrentUserName(),
     timestamp: '',
     cells: {
       current: currentCellData,
