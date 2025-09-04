@@ -1,11 +1,24 @@
-import { rawModelApi } from 'boot/axios';
+import { completionPublicApi, completionYellowApi } from 'boot/axios';
+import type { PromptElements } from 'src/types/completion-manager/types/common';
 import type { CompletionBody } from 'src/types/completion-manager/types/network';
 import { useSettingsStore } from 'stores/settings';
 
-export const generateRaw = async (content: string, signal: AbortSignal) => {
+export const completionYellow = async (promptElements: PromptElements, signal: AbortSignal) => {
+  const { data } = await completionYellowApi.post<{ message: string; result: string }>(
+    '/queryexcel',
+    promptElements.contentContext,
+    {
+      signal,
+    },
+  );
+
+  return data.result;
+};
+
+export const completionPublic = async (promptElements: PromptElements, signal: AbortSignal) => {
   const settingsStore = useSettingsStore();
 
-  const { data } = await rawModelApi.post<CompletionBody>(
+  const { data } = await completionPublicApi.post<CompletionBody>(
     '/chat/completions',
     {
       model: settingsStore.model,
@@ -72,7 +85,7 @@ export const generateRaw = async (content: string, signal: AbortSignal) => {
         },
         {
           role: 'user',
-          content,
+          content: promptElements.stringify(),
         },
         {
           role: 'system',

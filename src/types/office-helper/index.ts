@@ -41,13 +41,16 @@ export class OfficeHelper {
     return this._officeInfo;
   }
 
-  async setCellContent(text: string) {
+  async setCellContent(text: string, insertZeroWidthSpaces = false) {
     if (!this._isAvailable) {
       return false;
     }
 
     await Excel.run(async (context) => {
       const activeCell = context.workbook.getActiveCell();
+      if (insertZeroWidthSpaces) {
+        text = '\u200B' + text.split('\n').join('\n\u200B');
+      }
       activeCell.values = [[text]];
       await context.sync();
     });

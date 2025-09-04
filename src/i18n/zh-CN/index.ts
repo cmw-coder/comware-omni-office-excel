@@ -61,9 +61,11 @@ export default {
             title: '补全',
             apiToken: 'API 令牌',
             model: '模型',
+            privateModel: '私有模型',
             staticRanges: '静态单元格',
           },
           tooltips: {
+            whyCannotEditModel: '模型只能在“网络区域”为“公网”时手动设置',
             whyCannotEditStaticRanges: '静态单元格只能在“补全策略”为“通用”时手动设置',
           },
         },

@@ -61,9 +61,11 @@ export default {
             title: 'Completion',
             apiToken: 'API Token',
             model: 'Model',
+            privateModel: 'Private Model',
             staticRanges: 'Static Cells',
           },
           tooltips: {
+            whyCannotEditModel: 'Model can only be set manually when "Network Zone" is "Public"',
             whyCannotEditStaticRanges:
               'Static Cells can only be set when "Completion Strategy" is "General"',
           },

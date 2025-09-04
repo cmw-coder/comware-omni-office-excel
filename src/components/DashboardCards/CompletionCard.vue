@@ -19,7 +19,7 @@ const generateData = ref('');
 const generateResult = ref<GenerateResult>();
 
 const applyCompletion = async () => {
-  await officeHelper.setCellContent(generateData.value);
+  await officeHelper.setCellContent(generateData.value, true);
   if (currentStatisticId.value) {
     statisticManager.accept(currentStatisticId.value);
     currentStatisticId.value = undefined;

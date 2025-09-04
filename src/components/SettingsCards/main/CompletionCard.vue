@@ -66,6 +66,7 @@ onMounted(async () => {
         </q-item-section>
         <q-item-section side>
           <q-select
+            v-if="networkZone === NetworkZone.Public"
             borderless
             dense
             emit-value
@@ -74,6 +75,16 @@ onMounted(async () => {
             :options="models"
             v-model="model"
           />
+          <div v-else class="row items-center q-gutter-x-sm">
+            <div>
+              {{ i18n('labels.privateModel') }}
+            </div>
+            <q-icon name="help_outline" size="sm">
+              <q-tooltip>
+                {{ i18n('tooltips.whyCannotEditModel') }}
+              </q-tooltip>
+            </q-icon>
+          </div>
         </q-item-section>
       </q-item>
       <q-item tag="label" v-ripple>

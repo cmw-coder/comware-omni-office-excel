@@ -90,21 +90,21 @@ export interface GenerateResponse {
 }
 
 export class PromptElements {
-  private readonly _contentContext: ContentContext;
+  readonly contentContext: ContentContext;
 
   constructor(context: ContentContext) {
     console.info('PromptElements context:', context);
-    this._contentContext = context;
+    this.contentContext = context;
   }
 
   get cacheKey() {
     return (
-      `(${this._contentContext.cells.current.address.column},${this._contentContext.cells.current.address.row})` +
-      this._contentContext.cells.current.content.trimEnd()
+      `(${this.contentContext.cells.current.address.column},${this.contentContext.cells.current.address.row})` +
+      this.contentContext.cells.current.content.trimEnd()
     );
   }
 
   stringify() {
-    return JSON.stringify(this._contentContext);
+    return JSON.stringify(this.contentContext);
   }
 }

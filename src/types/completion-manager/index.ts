@@ -1,6 +1,8 @@
 import { isCancel } from 'axios';
 
-import { generateRaw } from './utils/network';
+import { useSettingsStore } from 'stores/settings';
+
+import { COMPLETION_FUNCTION_MAP } from './constants';
 import { GenerateResult, LRUCache } from './types/common';
 import type { GenerateResponse, PromptElements } from './types/common';
 
@@ -25,7 +27,10 @@ export class CompletionManager {
     this._abortController = new AbortController();
 
     try {
-      const result = await generateRaw(promptElements.stringify(), this._abortController.signal);
+      const result = await COMPLETION_FUNCTION_MAP[useSettingsStore().networkZone](
+        promptElements,
+        this._abortController.signal,
+      );
       if (result?.length) {
         this._cache.put(cacheKey, [result]);
         return {
