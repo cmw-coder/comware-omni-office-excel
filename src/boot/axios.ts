@@ -9,7 +9,7 @@ declare module 'vue' {
 }
 
 const completionPublicApi = axios.create({ baseURL: 'https://openrouter.ai/api/v1' });
-const completionYellowApi = axios.create({ baseURL: 'https://aitester.h3c.com:9057' });
+const completionYellowApi = axios.create({ baseURL: '/api/v1' });
 
 export default defineBoot(({ app }) => {
   app.config.globalProperties.$completionPublicApi = completionPublicApi;

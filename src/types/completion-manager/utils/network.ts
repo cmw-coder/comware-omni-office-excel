@@ -5,7 +5,7 @@ import { useSettingsStore } from 'stores/settings';
 
 export const completionYellow = async (promptElements: PromptElements, signal: AbortSignal) => {
   const { data } = await completionYellowApi.post<{ message: string; result: string }>(
-    '/queryexcel',
+    '/completion',
     promptElements.contentContext,
     {
       signal,
