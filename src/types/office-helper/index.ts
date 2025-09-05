@@ -519,6 +519,59 @@ export class OfficeHelper {
     });
   }
 
+  async isInCellEditMode(): Promise<boolean> {
+    if (!this._isAvailable) {
+      return false;
+    }
+
+    return new Promise((resolve) => {
+      Excel.run(async (context) => {
+        try {
+          // 尝试获取当前单元格来检测是否处于编辑模式
+          const currentCell = context.workbook.getActiveCell();
+          currentCell.load(['address']);
+          await context.sync();
+
+          // 如果能够成功获取单元格信息，说明不在编辑模式
+          resolve(false);
+        } catch (error) {
+          // 检查是否是单元格编辑模式错误
+          if (error instanceof Error && error.message.includes('单元格编辑模式')) {
+            console.debug(
+              '[OfficeHelper](isInCellEditMode)',
+              'Excel is in cell edit mode'
+            );
+            resolve(true);
+          } else {
+            // 其他错误，假定不在编辑模式
+            console.warn(
+              '[OfficeHelper](isInCellEditMode)',
+              'Error during cell edit mode check:',
+              error
+            );
+            resolve(false);
+          }
+        }
+      }).catch((error) => {
+        // 检查是否是单元格编辑模式错误
+        if (error instanceof Error && error.message.includes('单元格编辑模式')) {
+          console.debug(
+            '[OfficeHelper](isInCellEditMode)',
+            'Excel is in cell edit mode'
+          );
+          resolve(true);
+        } else {
+          console.error(
+            '[OfficeHelper](isInCellEditMode)',
+            'Uncaught error during cell edit mode check:',
+            error
+          );
+          resolve(false);
+        }
+      });
+    });
+  }
+
   private _associateActions() {
     Office.actions.associate('ComwareOmniAcceptCandidate', () => {
       this.onAcceptCandidate?.();
