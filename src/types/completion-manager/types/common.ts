@@ -78,10 +78,10 @@ export class LRUCache<T> {
 }
 
 export enum GenerateResult {
-  Cancel = 'Cancel',
-  Empty = 'Empty',
-  Error = 'Error',
-  Success = 'Success',
+  cancel = 'cancel',
+  empty = 'empty',
+  error = 'error',
+  success = 'success',
 }
 
 export interface GenerateResponse {

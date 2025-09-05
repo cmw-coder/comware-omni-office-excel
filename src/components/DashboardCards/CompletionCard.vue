@@ -62,7 +62,7 @@ const triggerCompletion = async (address?: string) => {
 
   if (!currentCellData) {
     generateData.value = i18n('labels.noNeedToComplete');
-    generateResult.value = GenerateResult.Empty;
+    generateResult.value = GenerateResult.empty;
     statisticManager.abort(statisticId);
     loading.value = false;
     return;
@@ -94,24 +94,24 @@ const triggerCompletion = async (address?: string) => {
   const { result, data } = await completionManager.generate(promptElements, !address);
   console.log({ result, data });
   switch (result) {
-    case GenerateResult.Cancel: {
+    case GenerateResult.cancel: {
       generateResult.value = result;
       statisticManager.abort(statisticId);
       break;
     }
-    case GenerateResult.Empty: {
+    case GenerateResult.empty: {
       generateData.value = i18n('labels.noNeedToComplete');
       generateResult.value = result;
       statisticManager.abort(statisticId);
       break;
     }
-    case GenerateResult.Error: {
+    case GenerateResult.error: {
       generateData.value = data[0] ?? '';
       generateResult.value = result;
       statisticManager.abort(statisticId);
       break;
     }
-    case GenerateResult.Success: {
+    case GenerateResult.success: {
       statisticManager.setCandidates(statisticId, data);
       const candidate = statisticManager.getCurrentCandidate(statisticId);
       if (!candidate) {
@@ -126,7 +126,7 @@ const triggerCompletion = async (address?: string) => {
         currentStatisticId.value = statisticId;
       } else {
         generateData.value = i18n('labels.noNeedToComplete');
-        generateResult.value = GenerateResult.Empty;
+        generateResult.value = GenerateResult.empty;
         statisticManager.abort(statisticId);
       }
       break;
@@ -171,8 +171,8 @@ onUnmounted(() => {
     <q-card-section
       class="q-gutter-y-sm"
       :class="{
-        'text-accent': generateResult === GenerateResult.Empty,
-        'text-negative': generateResult === GenerateResult.Error,
+        'text-accent': generateResult === GenerateResult.empty,
+        'text-negative': generateResult === GenerateResult.error,
       }"
     >
       <div class="row items-center justify-between">
@@ -199,7 +199,7 @@ onUnmounted(() => {
         class="full-width"
         color="primary"
         :disable="
-          generateResult !== GenerateResult.Cancel && generateResult !== GenerateResult.Success
+          generateResult !== GenerateResult.cancel && generateResult !== GenerateResult.success
         "
         :label="i18n('labels.insertCompletion')"
         no-caps

@@ -17,7 +17,7 @@ export class CompletionManager {
       const completionCached = this._cache.get(cacheKey);
       if (completionCached) {
         return {
-          result: GenerateResult.Success,
+          result: GenerateResult.success,
           data: completionCached,
         };
       }
@@ -34,24 +34,25 @@ export class CompletionManager {
       if (result?.length) {
         this._cache.put(cacheKey, [result]);
         return {
-          result: GenerateResult.Success,
+          result: GenerateResult.success,
           data: [result],
         };
       }
       return {
-        result: GenerateResult.Empty,
+        result: GenerateResult.empty,
         data: [],
       };
     } catch (e) {
+      this._abortController = new AbortController();
       if (isCancel(e)) {
         return {
-          result: GenerateResult.Cancel,
+          result: GenerateResult.cancel,
           data: [],
         };
       }
       console.error(e);
       return {
-        result: GenerateResult.Error,
+        result: GenerateResult.error,
         data: [(<Error>e).message],
       };
     }
