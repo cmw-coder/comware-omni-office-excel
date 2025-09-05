@@ -52,7 +52,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p ${{ env.RELEASE_FOLDER }}
-          7z a -tzip -x!manifest.xml ${{ env.RELEASE_FOLDER }}/comware-omni-office-excel.zip "${{ env.OUTPUT_FOLDER }}/*"
+          7z a -tzip ${{ env.RELEASE_FOLDER }}/comware-omni-office-excel.zip "${{ env.OUTPUT_FOLDER }}/*"
           cp ${{ env.OUTPUT_FOLDER }}/manifest.xml ${{ env.RELEASE_FOLDER }}/manifest.xml
       - name: Upload release
         if: ${{ startsWith(github.ref, 'refs/tags/pre') || startsWith(github.ref, 'refs/tags/v') }}
