@@ -149,10 +149,19 @@ onMounted(async () => {
       await triggerCompletion(address);
     }
   });
-
   officeHelper.registerOnSheetSelectionChanged(templateId, async ({ address }) => {
     await triggerCompletion(address);
   });
+  officeHelper.onAcceptCandidate = () => {
+    if (
+      generateResult.value !== GenerateResult.cancel &&
+      generateResult.value !== GenerateResult.success
+    ) {
+      console.warn('No valid completion to accept:', { generateResult: generateResult.value });
+      return;
+    }
+    applyCompletion().catch((err) => console.error('Failed to apply completion:', err));
+  };
 });
 
 onUnmounted(() => {
