@@ -35,13 +35,6 @@ const triggerCompletion = async (address?: string) => {
     return;
   }
 
-  // 检查是否处于单元格编辑模式，如果是则直接返回
-  const isEditMode = await officeHelper.isInCellEditMode();
-  if (isEditMode) {
-    console.debug('Excel is in cell edit mode, skipping completion trigger');
-    return;
-  }
-
   loading.value = true;
   const statisticId = statisticManager.begin(projectId.value);
   let currentCellData: CellData | undefined;

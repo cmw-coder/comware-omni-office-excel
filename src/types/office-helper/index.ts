@@ -53,7 +53,7 @@ export class OfficeHelper {
       return false;
     }
 
-    await Excel.run(async (context) => {
+    await Excel.run({ delayForCellEdit: true }, async (context) => {
       const activeCell = context.workbook.getActiveCell();
       if (insertZeroWidthSpaces) {
         text = '\u200B' + text.split('\n').join('\n\u200B');
@@ -85,7 +85,7 @@ export class OfficeHelper {
     }
 
     return new Promise((resolve, reject) => {
-      Excel.run(async (context) => {
+      Excel.run({ delayForCellEdit: true }, async (context) => {
         try {
           const currentCell = context.workbook.getActiveCell();
           currentCell.load(['address', 'columnIndex', 'rowIndex', 'values']);
@@ -129,7 +129,7 @@ export class OfficeHelper {
     }
 
     return new Promise((resolve, reject) => {
-      Excel.run(async (context) => {
+      Excel.run({ delayForCellEdit: true }, async (context) => {
         try {
           const workbook = context.workbook;
           workbook.load(['name']);
@@ -163,7 +163,7 @@ export class OfficeHelper {
     }
 
     return new Promise((resolve, reject) => {
-      Excel.run(async (context) => {
+      Excel.run({ delayForCellEdit: true }, async (context) => {
         try {
           const activeWorksheet = context.workbook.worksheets.getActiveWorksheet();
           activeWorksheet.load(['name']);
@@ -197,7 +197,7 @@ export class OfficeHelper {
     }
 
     return new Promise((resolve, reject) => {
-      Excel.run(async (context) => {
+      Excel.run({ delayForCellEdit: true }, async (context) => {
         try {
           const currentSheet = context.workbook.worksheets.getActiveWorksheet();
           const ranges = currentSheet.getRanges(address);
@@ -264,7 +264,7 @@ export class OfficeHelper {
     }
 
     return new Promise((resolve, reject) => {
-      Excel.run(async (context) => {
+      Excel.run({ delayForCellEdit: true }, async (context) => {
         try {
           const currentSheet = context.workbook.worksheets.getActiveWorksheet();
           const ranges = currentSheet.getRanges(address);
@@ -315,7 +315,7 @@ export class OfficeHelper {
     }
 
     return new Promise((resolve, reject) => {
-      Excel.run(async (context) => {
+      Excel.run({ delayForCellEdit: true }, async (context) => {
         try {
           const customProperties = context.workbook.properties.custom;
           customProperties.load();
@@ -360,7 +360,7 @@ export class OfficeHelper {
     }
 
     return new Promise((resolve, reject) => {
-      Excel.run(async (context) => {
+      Excel.run({ delayForCellEdit: true }, async (context) => {
         try {
           const customProperties = context.workbook.properties.custom;
           customProperties.load();
@@ -403,7 +403,7 @@ export class OfficeHelper {
     }
 
     return new Promise((resolve, reject) => {
-      Excel.run(async (context) => {
+      Excel.run({ delayForCellEdit: true }, async (context) => {
         try {
           const customProperties = context.workbook.properties.custom;
           customProperties.load();
@@ -454,17 +454,13 @@ export class OfficeHelper {
             Office.context.mailbox.userProfile.displayName ||
             Office.context.mailbox.userProfile.emailAddress ||
             'Unknown';
-          console.debug(
-            '[OfficeHelper](retrieveUserId)',
-            'userName from mailbox:',
-            userName,
-          );
+          console.debug('[OfficeHelper](retrieveUserId)', 'userName from mailbox:', userName);
           resolve(userName);
           return;
         }
 
         // Method 2: Try to get user ID from custom properties, fallback to document author
-        Excel.run(async (context) => {
+        Excel.run({ delayForCellEdit: true }, async (context) => {
           try {
             const customProperties = context.workbook.properties.custom;
             customProperties.load();
@@ -497,11 +493,7 @@ export class OfficeHelper {
             );
             resolve(userName);
           } catch (error) {
-            console.warn(
-              '[OfficeHelper](retrieveUserId)',
-              'Error during Excel.run:',
-              error,
-            );
+            console.warn('[OfficeHelper](retrieveUserId)', 'Error during Excel.run:', error);
             resolve('Unknown');
           }
         }).catch((error) => {
@@ -516,59 +508,6 @@ export class OfficeHelper {
         console.error('[OfficeHelper](retrieveUserId)', 'Error getting user name:', error);
         resolve('Unknown');
       }
-    });
-  }
-
-  async isInCellEditMode(): Promise<boolean> {
-    if (!this._isAvailable) {
-      return false;
-    }
-
-    return new Promise((resolve) => {
-      Excel.run(async (context) => {
-        try {
-          // 尝试获取当前单元格来检测是否处于编辑模式
-          const currentCell = context.workbook.getActiveCell();
-          currentCell.load(['address']);
-          await context.sync();
-
-          // 如果能够成功获取单元格信息，说明不在编辑模式
-          resolve(false);
-        } catch (error) {
-          // 检查是否是单元格编辑模式错误
-          if (error instanceof Error && error.message.includes('单元格编辑模式')) {
-            console.debug(
-              '[OfficeHelper](isInCellEditMode)',
-              'Excel is in cell edit mode'
-            );
-            resolve(true);
-          } else {
-            // 其他错误，假定不在编辑模式
-            console.warn(
-              '[OfficeHelper](isInCellEditMode)',
-              'Error during cell edit mode check:',
-              error
-            );
-            resolve(false);
-          }
-        }
-      }).catch((error) => {
-        // 检查是否是单元格编辑模式错误
-        if (error instanceof Error && error.message.includes('单元格编辑模式')) {
-          console.debug(
-            '[OfficeHelper](isInCellEditMode)',
-            'Excel is in cell edit mode'
-          );
-          resolve(true);
-        } else {
-          console.error(
-            '[OfficeHelper](isInCellEditMode)',
-            'Uncaught error during cell edit mode check:',
-            error
-          );
-          resolve(false);
-        }
-      });
     });
   }
 
@@ -590,7 +529,7 @@ export class OfficeHelper {
 
   private async _registryEvents() {
     return new Promise<void>((resolve, reject) => {
-      Excel.run(async (context) => {
+      Excel.run({ delayForCellEdit: true }, async (context) => {
         context.workbook.worksheets.load();
         await context.sync();
 
