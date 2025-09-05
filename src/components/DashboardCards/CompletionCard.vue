@@ -6,8 +6,8 @@ import { contextManager } from 'boot/context';
 import { officeHelper } from 'boot/office';
 import { statisticManager } from 'boot/statistic';
 import type { CellData } from 'src/types/common';
-import { i18nSubPath } from 'src/utils/common';
 import { GenerateResult, PromptElements } from 'src/types/completion-manager/types/common';
+import { i18nSubPath } from 'src/utils/common';
 
 const templateId = 'components.DashboardCards.CompletionCard';
 
@@ -17,6 +17,9 @@ const currentStatisticId = ref<string>();
 const loading = ref(false);
 const generateData = ref('');
 const generateResult = ref<GenerateResult>();
+const projectId = ref<string>();
+const timestamp = ref<string>();
+const userId = ref<string>();
 
 const applyCompletion = async () => {
   await officeHelper.setCellContent(generateData.value, true);
@@ -27,8 +30,13 @@ const applyCompletion = async () => {
 };
 
 const triggerCompletion = async (address?: string) => {
+  if (!projectId.value || !timestamp.value || !userId.value) {
+    console.warn('No projectId or userId, skip completion');
+    return;
+  }
+
   loading.value = true;
-  const statisticId = statisticManager.begin('');
+  const statisticId = statisticManager.begin(projectId.value);
   let currentCellData: CellData | undefined;
   if (address) {
     console.log({ address });
@@ -62,9 +70,9 @@ const triggerCompletion = async (address?: string) => {
   const context = {
     fileName,
     sheetName,
-    projectId: '',
-    userId: await officeHelper.retrieveCurrentUserName(),
-    timestamp: '',
+    projectId: projectId.value,
+    userId: userId.value,
+    timestamp: timestamp.value,
     cells: {
       current: currentCellData,
       related: relatedCellDataList,
@@ -120,7 +128,11 @@ const triggerCompletion = async (address?: string) => {
   loading.value = false;
 };
 
-onMounted(() => {
+onMounted(async () => {
+  projectId.value = await officeHelper.retrieveProjectId();
+  timestamp.value = await officeHelper.retrieveTimestamp();
+  userId.value = await officeHelper.retrieveUserId();
+
   officeHelper.registerOnSheetChanged(templateId, async ({ address, changeType }) => {
     if (
       changeType === Excel.DataChangeType.cellDeleted ||

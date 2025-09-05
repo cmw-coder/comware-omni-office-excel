@@ -3,7 +3,13 @@ import { uid } from 'quasar';
 import type { CellAddress, CellData, RangeAddress } from 'src/types/common';
 import { useCompletionStore } from 'stores/completion';
 
-import { PROPERTY_FILE_ID_KEY, OFFICE_JS_SCRIPT_TAG, PROPERTY_USER_ID_KEY } from './constants';
+import {
+  PROPERTY_FILE_ID_KEY,
+  OFFICE_JS_SCRIPT_TAG,
+  PROPERTY_USER_ID_KEY,
+  PROPERTY_PROJECT_ID_KEY,
+  PROPERTY_TIMESTAMP_KEY,
+} from './constants';
 import type { OfficeInfo, SheetChangedHandler, SheetSelectionChangedHandler } from './types';
 import { stringifyRangeAreaAddress } from './utils';
 
@@ -303,84 +309,6 @@ export class OfficeHelper {
     });
   }
 
-  async retrieveCurrentUserName(): Promise<string> {
-    if (!this._isAvailable) {
-      throw new Error('[OfficeHelper](retrieveCurrentUserName) Instance is not available');
-    }
-
-    return new Promise((resolve) => {
-      try {
-        // Method 1: Try to get user ID from mailbox profile
-        if (Office.context && Office.context.mailbox && Office.context.mailbox.userProfile) {
-          const userName =
-            Office.context.mailbox.userProfile.displayName ||
-            Office.context.mailbox.userProfile.emailAddress ||
-            'Unknown';
-          console.debug(
-            '[OfficeHelper](retrieveCurrentUserName)',
-            'userName from mailbox:',
-            userName,
-          );
-          resolve(userName);
-          return;
-        }
-
-        // Method 2: Try to get user ID from custom properties, fallback to document author
-        Excel.run(async (context) => {
-          try {
-            const customProperties = context.workbook.properties.custom;
-            customProperties.load();
-            await context.sync();
-
-            const userIdProperty = customProperties.getItem(PROPERTY_USER_ID_KEY);
-            userIdProperty.load('value');
-            await context.sync();
-
-            resolve(userIdProperty.value);
-            return;
-          } catch (error) {
-            console.warn(
-              '[OfficeHelper](retrieveCurrentUserName)',
-              `Error loading custom property "${PROPERTY_USER_ID_KEY}":`,
-              error,
-            );
-          }
-
-          try {
-            const docProps = context.workbook.properties;
-            docProps.load(['author']);
-            await context.sync();
-
-            const userName = docProps.author || 'Unknown';
-            console.debug(
-              '[OfficeHelper](retrieveCurrentUserName)',
-              'userName from document author:',
-              userName,
-            );
-            resolve(userName);
-          } catch (error) {
-            console.warn(
-              '[OfficeHelper](retrieveCurrentUserName)',
-              'Error during Excel.run:',
-              error,
-            );
-            resolve('Unknown');
-          }
-        }).catch((error) => {
-          console.error(
-            '[OfficeHelper](retrieveCurrentUserName)',
-            'Uncaught error during Excel.run:',
-            error,
-          );
-          resolve('Unknown');
-        });
-      } catch (error) {
-        console.error('[OfficeHelper](retrieveCurrentUserName)', 'Error getting user name:', error);
-        resolve('Unknown');
-      }
-    });
-  }
-
   async retrieveFileId(): Promise<string> {
     if (!this._isAvailable) {
       return '';
@@ -421,8 +349,173 @@ export class OfficeHelper {
           'Uncaught error during "Excel.run":',
           error,
         );
-        resolve('');
+        reject(error instanceof Error ? error : new Error(String(error)));
       });
+    });
+  }
+
+  async retrieveProjectId(): Promise<string> {
+    if (!this._isAvailable) {
+      throw new Error('[OfficeHelper](RetrieveProjectId) Instance is not available');
+    }
+
+    return new Promise((resolve, reject) => {
+      Excel.run(async (context) => {
+        try {
+          const customProperties = context.workbook.properties.custom;
+          customProperties.load();
+          await context.sync();
+
+          let projectId: string;
+          try {
+            const existingId = customProperties.getItem(PROPERTY_PROJECT_ID_KEY);
+            existingId.load('value');
+            await context.sync();
+            projectId = existingId.value;
+          } catch {
+            projectId = `TempProject_${uid()}`;
+            customProperties.add(PROPERTY_PROJECT_ID_KEY, projectId);
+            await context.sync();
+            console.warn(
+              '[OfficeHelper](retrieveProjectId)',
+              `No existing project ID found, generating temporary ID: ${projectId}`,
+            );
+          }
+          resolve(projectId);
+        } catch (error) {
+          console.error('[OfficeHelper](retrieveProjectId)', 'Error during "Excel.run":', error);
+          reject(error instanceof Error ? error : new Error(String(error)));
+        }
+      }).catch((error) => {
+        console.error(
+          '[OfficeHelper](retrieveProjectId)',
+          'Uncaught error during "Excel.run":',
+          error,
+        );
+        reject(error instanceof Error ? error : new Error(String(error)));
+      });
+    });
+  }
+
+  async retrieveTimestamp(): Promise<string> {
+    if (!this._isAvailable) {
+      throw new Error('[OfficeHelper](retrieveTimestamp) Instance is not available');
+    }
+
+    return new Promise((resolve, reject) => {
+      Excel.run(async (context) => {
+        try {
+          const customProperties = context.workbook.properties.custom;
+          customProperties.load();
+          await context.sync();
+
+          let timestamp: string;
+          try {
+            const existingTimestamp = customProperties.getItem(PROPERTY_TIMESTAMP_KEY);
+            existingTimestamp.load('value');
+            await context.sync();
+            timestamp = existingTimestamp.value;
+          } catch {
+            timestamp = new Date().toISOString();
+            customProperties.add(PROPERTY_TIMESTAMP_KEY, timestamp);
+            await context.sync();
+            console.info(
+              '[OfficeHelper](retrieveTimestamp)',
+              'Created and stored new timestamp:',
+              timestamp,
+            );
+          }
+          resolve(timestamp);
+        } catch (error) {
+          console.error('[OfficeHelper](retrieveTimestamp)', 'Error during "Excel.run":', error);
+          reject(error instanceof Error ? error : new Error(String(error)));
+        }
+      }).catch((error) => {
+        console.error(
+          '[OfficeHelper](retrieveTimestamp)',
+          'Uncaught error during "Excel.run":',
+          error,
+        );
+        reject(error instanceof Error ? error : new Error(String(error)));
+      });
+    });
+  }
+
+  async retrieveUserId(): Promise<string> {
+    if (!this._isAvailable) {
+      throw new Error('[OfficeHelper](retrieveUserId) Instance is not available');
+    }
+
+    return new Promise((resolve) => {
+      try {
+        // Method 1: Try to get user ID from mailbox profile
+        if (Office.context && Office.context.mailbox && Office.context.mailbox.userProfile) {
+          const userName =
+            Office.context.mailbox.userProfile.displayName ||
+            Office.context.mailbox.userProfile.emailAddress ||
+            'Unknown';
+          console.debug(
+            '[OfficeHelper](retrieveUserId)',
+            'userName from mailbox:',
+            userName,
+          );
+          resolve(userName);
+          return;
+        }
+
+        // Method 2: Try to get user ID from custom properties, fallback to document author
+        Excel.run(async (context) => {
+          try {
+            const customProperties = context.workbook.properties.custom;
+            customProperties.load();
+            await context.sync();
+
+            const userIdProperty = customProperties.getItem(PROPERTY_USER_ID_KEY);
+            userIdProperty.load('value');
+            await context.sync();
+
+            resolve(userIdProperty.value);
+            return;
+          } catch (error) {
+            console.warn(
+              '[OfficeHelper](retrieveUserId)',
+              `Error loading custom property "${PROPERTY_USER_ID_KEY}":`,
+              error,
+            );
+          }
+
+          try {
+            const docProps = context.workbook.properties;
+            docProps.load(['author']);
+            await context.sync();
+
+            const userName = docProps.author || 'Unknown';
+            console.debug(
+              '[OfficeHelper](retrieveUserId)',
+              'userName from document author:',
+              userName,
+            );
+            resolve(userName);
+          } catch (error) {
+            console.warn(
+              '[OfficeHelper](retrieveUserId)',
+              'Error during Excel.run:',
+              error,
+            );
+            resolve('Unknown');
+          }
+        }).catch((error) => {
+          console.error(
+            '[OfficeHelper](retrieveUserId)',
+            'Uncaught error during Excel.run:',
+            error,
+          );
+          resolve('Unknown');
+        });
+      } catch (error) {
+        console.error('[OfficeHelper](retrieveUserId)', 'Error getting user name:', error);
+        resolve('Unknown');
+      }
     });
   }
 
@@ -449,7 +542,10 @@ export class OfficeHelper {
         await context.sync();
 
         context.workbook.onActivated.add(async () => {
-          console.debug('[OfficeHelper](_registryEvents)', 'Workbook activated - Excel file opened');
+          console.debug(
+            '[OfficeHelper](_registryEvents)',
+            'Workbook activated - Excel file opened',
+          );
           await useCompletionStore().initCompletionStore();
         });
 
