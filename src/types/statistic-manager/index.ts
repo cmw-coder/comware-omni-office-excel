@@ -19,6 +19,7 @@ export class StatisticManager {
       (async () => await countOnlySku(10, 'USE_TIME'))().catch((err) => console.warn(err));
       (async () => {
         if (this._isActivelyUsing) {
+          this._isActivelyUsing = false;
           await countOnlySku(10, 'ACTIVE_TIME');
         }
       })().catch((err) => console.warn(err));
