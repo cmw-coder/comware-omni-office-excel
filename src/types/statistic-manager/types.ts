@@ -19,7 +19,7 @@ export interface ReportSkuDto {
   product: 'EXCEL';
   firstClass: 'CODE';
   secondClass: string;
-  skuName: 'ADOPT' | 'GENE' | 'KEEP';
+  skuName: 'ACTIVE_TIME' | 'ADOPT' | 'GENE' | 'KEEP' | 'USE_TIME';
   user: string;
   userType: 'USER' | 'HOST';
   extra?: string;

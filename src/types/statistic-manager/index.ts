@@ -3,9 +3,11 @@ import type { PromptElements } from 'src/types/completion-manager/types/common';
 
 import { StatisticsData } from './types';
 import type { CompletionCandidate } from './types';
+import { countOnlySku } from './utils';
 
 export class StatisticManager {
   private _dataMap = new Map<string, StatisticsData>();
+  private _isActivelyUsing = false;
 
   constructor() {
     setInterval(() => {
@@ -14,7 +16,13 @@ export class StatisticManager {
           this.abort(id);
         }
       }
-    });
+      (async () => await countOnlySku(10, 'USE_TIME'))().catch((err) => console.warn(err));
+      (async () => {
+        if (this._isActivelyUsing) {
+          await countOnlySku(10, 'ACTIVE_TIME');
+        }
+      })().catch((err) => console.warn(err));
+    }, 10000);
   }
 
   abort(id: string) {
@@ -22,6 +30,7 @@ export class StatisticManager {
   }
 
   begin(projectId: string) {
+    this._isActivelyUsing = true;
     const data = new StatisticsData(projectId);
     this._dataMap.set(data.id, data);
     return data.id;

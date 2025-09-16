@@ -57,6 +57,28 @@ export const acceptSku = async (
   return await _reportSku([data]);
 };
 
+export const countOnlySku = async (
+  count: number | undefined,
+  skuName: ReportSkuDto['skuName'],
+): Promise<boolean> => {
+  const currentTimestamp = DateTime.now();
+  const data: ReportSkuDto = {
+    begin: Math.floor(currentTimestamp.toMillis() / 1000),
+    end: Math.floor(currentTimestamp.toMillis() / 1000),
+    count: count ?? 0,
+    type: 'AIGC',
+    product: 'EXCEL',
+    firstClass: 'CODE',
+    secondClass: 'CMW',
+    skuName,
+    user: await officeHelper.retrieveUserId(),
+    userType: 'USER',
+    extra: PackageJson.version,
+    subType: await officeHelper.retrieveProjectId(),
+  };
+  return await _reportSku([data]);
+};
+
 export const generateSku = async (
   begin: DateTime,
   count: number | undefined,
