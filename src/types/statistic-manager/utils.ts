@@ -48,7 +48,7 @@ export const acceptSku = async (
     product: 'EXCEL',
     firstClass: 'CODE',
     secondClass: modelName,
-    skuName: 'ADOPT',
+    skuName: 'KEEP',
     user: await officeHelper.retrieveUserId(),
     userType: 'USER',
     extra: PackageJson.version,
@@ -57,9 +57,9 @@ export const acceptSku = async (
   return await _reportSku([data]);
 };
 
-export const countOnlySku = async (
+export const timeSku = async (
   count: number | undefined,
-  skuName: ReportSkuDto['skuName'],
+  skuName: 'ACTIVE' | 'USE',
 ): Promise<boolean> => {
   const currentTimestamp = DateTime.now();
   const data: ReportSkuDto = {
@@ -68,7 +68,7 @@ export const countOnlySku = async (
     count: count ?? 0,
     type: 'AIGC',
     product: 'EXCEL',
-    firstClass: 'CODE',
+    firstClass: 'TIME',
     secondClass: 'CMW',
     skuName,
     user: await officeHelper.retrieveUserId(),

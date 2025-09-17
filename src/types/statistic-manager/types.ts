@@ -11,21 +11,28 @@ export interface CompletionCandidate {
   content: string;
 }
 
-export interface ReportSkuDto {
+export type ReportSkuDto = {
   begin?: number;
   end?: number;
   count: number;
   type: 'AIGC';
   product: 'EXCEL';
-  firstClass: 'CODE';
   secondClass: string;
-  skuName: 'ACTIVE_TIME' | 'ADOPT' | 'GENE' | 'KEEP' | 'USE_TIME';
   user: string;
   userType: 'USER' | 'HOST';
   extra?: string;
   subType?: string;
   hostName?: string;
-}
+} & (
+  | {
+      firstClass: 'CODE';
+      skuName: 'GENE' | 'KEEP';
+    }
+  | {
+      firstClass: 'TIME';
+      skuName: 'ACTIVE' | 'USE';
+    }
+);
 
 export class StatisticsData {
   readonly id: string;
