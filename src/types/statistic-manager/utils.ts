@@ -57,28 +57,6 @@ export const acceptSku = async (
   return await _reportSku([data]);
 };
 
-export const timeSku = async (
-  count: number | undefined,
-  skuName: 'ACTIVE' | 'USE',
-): Promise<boolean> => {
-  const currentTimestamp = DateTime.now();
-  const data: ReportSkuDto = {
-    begin: Math.floor(currentTimestamp.toMillis() / 1000),
-    end: Math.floor(currentTimestamp.toMillis() / 1000),
-    count: count ?? 0,
-    type: 'AIGC',
-    product: 'EXCEL',
-    firstClass: 'TIME',
-    secondClass: 'CMW',
-    skuName,
-    user: await officeHelper.retrieveUserId(),
-    userType: 'USER',
-    extra: PackageJson.version,
-    subType: await officeHelper.retrieveProjectId(),
-  };
-  return await _reportSku([data]);
-};
-
 export const generateSku = async (
   begin: DateTime,
   count: number | undefined,
@@ -98,6 +76,28 @@ export const generateSku = async (
     userType: 'USER',
     extra: PackageJson.version,
     subType: projectId,
+  };
+  return await _reportSku([data]);
+};
+
+export const timeSku = async (
+  count: number | undefined,
+  skuName: 'ACTIVE' | 'USE',
+): Promise<boolean> => {
+  const currentTimestamp = DateTime.now();
+  const data: ReportSkuDto = {
+    begin: Math.floor(currentTimestamp.toMillis() / 1000),
+    end: Math.floor(currentTimestamp.toMillis() / 1000),
+    count: count ?? 0,
+    type: 'AIGC',
+    product: 'EXCEL',
+    firstClass: 'TIME',
+    secondClass: 'CMW',
+    skuName,
+    user: await officeHelper.retrieveUserId(),
+    userType: 'USER',
+    extra: PackageJson.version,
+    subType: await officeHelper.retrieveProjectId(),
   };
   return await _reportSku([data]);
 };
